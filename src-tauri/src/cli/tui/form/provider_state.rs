@@ -77,6 +77,7 @@ impl ProviderAddFormState {
             opencode_model_context_limit: TextInput::new(""),
             opencode_model_output_limit: TextInput::new(""),
             opencode_model_original_id: None,
+            opencode_models: Vec::new(),
             initial_snapshot: Value::Null,
         };
         form.capture_initial_snapshot();
@@ -187,10 +188,7 @@ impl ProviderAddFormState {
                 fields.push(ProviderAddField::OpenCodeNpmPackage);
                 fields.push(ProviderAddField::OpenCodeApiKey);
                 fields.push(ProviderAddField::OpenCodeBaseUrl);
-                fields.push(ProviderAddField::OpenCodeModelId);
-                fields.push(ProviderAddField::OpenCodeModelName);
-                fields.push(ProviderAddField::OpenCodeModelContextLimit);
-                fields.push(ProviderAddField::OpenCodeModelOutputLimit);
+                fields.push(ProviderAddField::OpenCodeModelConfig);
             }
             AppType::OpenClaw => {
                 fields.push(ProviderAddField::OpenClawApiProtocol);
@@ -231,6 +229,7 @@ impl ProviderAddFormState {
             ProviderAddField::OpenCodeModelName => Some(&self.opencode_model_name),
             ProviderAddField::OpenCodeModelContextLimit => Some(&self.opencode_model_context_limit),
             ProviderAddField::OpenCodeModelOutputLimit => Some(&self.opencode_model_output_limit),
+            ProviderAddField::OpenCodeModelConfig => None,
             ProviderAddField::CodexWireApi
             | ProviderAddField::CodexRequiresOpenaiAuth
             | ProviderAddField::ClaudeApiFormat
@@ -271,6 +270,7 @@ impl ProviderAddFormState {
             ProviderAddField::OpenCodeModelOutputLimit => {
                 Some(&mut self.opencode_model_output_limit)
             }
+            ProviderAddField::OpenCodeModelConfig => None,
             ProviderAddField::CodexWireApi
             | ProviderAddField::CodexRequiresOpenaiAuth
             | ProviderAddField::ClaudeApiFormat
@@ -507,6 +507,80 @@ impl ProviderAddFormState {
             }
         }
         self.include_common_config = next_enabled;
+        Ok(())
+    }
+
+    /// 获取 opencode models 列表中的 model 数量
+    pub fn opencode_model_count(&self) -> usize {
+        self.opencode_models.len()
+    }
+
+    /// 检查 opencode models 列表中是否存在指定 model ID
+    pub fn opencode_has_model(&self, model_id: &str) -> bool {
+        self.opencode_models.iter().any(|m| m.model_id == model_id)
+    }
+
+    /// 添加一个 model draft 到 opencode models 列表
+    /// 如果 model_id 已存在则返回错误
+    pub fn opencode_add_model(
+        &mut self,
+        draft: crate::provider::OpenCodeModelDraft,
+    ) -> Result<(), String> {
+        if self.opencode_has_model(&draft.model_id) {
+            return Err(format!("Duplicated model id `{}`", draft.model_id));
+        }
+        self.opencode_models.push(draft);
+        Ok(())
+    }
+
+    /// 从 opencode models 列表中移除指定 index 的 model
+    /// 如果移除的是 current model，则自动回退到第一个 model
+    pub fn opencode_remove_model(
+        &mut self,
+        index: usize,
+    ) -> Option<crate::provider::OpenCodeModelDraft> {
+        if index >= self.opencode_models.len() {
+            return None;
+        }
+        let removed = self.opencode_models.remove(index);
+        // current model 回退：如果移除的是 current model，回退到第一个
+        let current_model = self.opencode_primary_model_id();
+        if current_model.as_deref() == Some(&removed.model_id) {
+            if let Some(first) = self.opencode_models.first() {
+                self.opencode_model_id.set(&first.model_id);
+            } else {
+                self.opencode_model_id.set("");
+            }
+        }
+        Some(removed)
+    }
+
+    /// 重命名 opencode models 列表中指定 index 的 model ID
+    /// 处理 current model 的跟随
+    pub fn opencode_rename_model(&mut self, index: usize, new_id: String) -> Result<(), String> {
+        if new_id.is_empty() {
+            return Err("Model ID is required".to_string());
+        }
+        // 检查新 ID 是否与其他 model 冲突
+        if self
+            .opencode_models
+            .iter()
+            .enumerate()
+            .any(|(i, m)| i != index && m.model_id == new_id)
+        {
+            return Err(format!("Duplicated model id `{}`", new_id));
+        }
+
+        if let Some(draft) = self.opencode_models.get_mut(index) {
+            let old_id = draft.model_id.clone();
+            draft.original_model_id = Some(old_id.clone());
+            draft.model_id = new_id.clone();
+
+            // 如果重命名的是 current model，更新 current model
+            if self.opencode_model_id.value.trim() == old_id {
+                self.opencode_model_id.set(&new_id);
+            }
+        }
         Ok(())
     }
 

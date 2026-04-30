@@ -325,6 +325,9 @@ pub struct OpenCodeProviderConfig {
     pub options: OpenCodeProviderOptions,
     #[serde(default)]
     pub models: HashMap<String, OpenCodeModel>,
+    /// 当前选中的 model ID
+    #[serde(rename = "currentModel", skip_serializing_if = "Option::is_none")]
+    pub current_model: Option<String>,
 }
 
 impl Default for OpenCodeProviderConfig {
@@ -334,6 +337,7 @@ impl Default for OpenCodeProviderConfig {
             name: None,
             options: OpenCodeProviderOptions::default(),
             models: HashMap::new(),
+            current_model: None,
         }
     }
 }
@@ -408,6 +412,33 @@ pub struct OpenClawModelCost {
     pub output: f64,
     #[serde(flatten, default, skip_serializing_if = "HashMap::is_empty")]
     pub extra: HashMap<String, Value>,
+}
+
+/// OpenCode 单个 model 的 draft 结构体（用于 TUI 多 model 编辑）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenCodeModelDraft {
+    pub model_id: String,
+    pub model_name: String,
+    pub input_limit: Option<u64>,
+    pub output_limit: Option<u64>,
+    /// 重命名前的原始 model ID（用于检测 rename 操作）
+    pub original_model_id: Option<String>,
+    /// 未识别的额外字段（如 options、userAgent 等），序列化时保留
+    #[serde(default)]
+    pub extra: serde_json::Value,
+}
+
+impl OpenCodeModelDraft {
+    pub fn new(model_id: String) -> Self {
+        Self {
+            model_id,
+            model_name: String::new(),
+            input_limit: None,
+            output_limit: None,
+            original_model_id: None,
+            extra: serde_json::Value::Null,
+        }
+    }
 }
 
 #[cfg(test)]

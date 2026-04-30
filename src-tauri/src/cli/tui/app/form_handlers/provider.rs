@@ -309,6 +309,22 @@ impl App {
                 };
                 Action::None
             }
+            ProviderAddField::OpenCodeModelConfig => {
+                // 导航到 OpenCodeModelConfigList 页面
+                // 注意: 保留 self.form，ModelConfigList 页面渲染需要读取 form 中的 models 数据
+                if matches!(key.code, KeyCode::Enter | KeyCode::Char(' ')) {
+                    if let Some(FormState::ProviderAdd(form)) = &self.form {
+                        let provider_id = form.id.value.trim().to_string();
+                        if !provider_id.is_empty() {
+                            self.push_route_and_switch(Route::OpenCodeModelConfigList {
+                                provider_id,
+                            });
+                            self.provider_idx = 0;
+                        }
+                    }
+                }
+                Action::None
+            }
             ProviderAddField::OpenClawModels => {
                 if matches!(key.code, KeyCode::Enter) {
                     let Some(FormState::ProviderAdd(provider)) = self.form.as_ref() else {

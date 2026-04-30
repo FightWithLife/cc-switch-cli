@@ -77,7 +77,10 @@ impl App {
     pub(crate) fn nav_item_for_route(app_type: &AppType, route: &Route) -> NavItem {
         match route {
             Route::Main => NavItem::Main,
-            Route::Providers | Route::ProviderDetail { .. } => NavItem::Providers,
+            Route::Providers
+            | Route::ProviderDetail { .. }
+            | Route::OpenCodeModelConfigList { .. }
+            | Route::OpenCodeModelConfigDetail { .. } => NavItem::Providers,
             Route::Mcp => NavItem::Mcp,
             Route::Prompts => NavItem::Prompts,
             Route::Config => NavItem::Config,
@@ -295,6 +298,25 @@ impl App {
             return self.on_editor_key(key);
         }
 
+        // ModelConfigList/Detail 页面优先处理自身按键（form 数据仍保留但不拦截按键）
+        if matches!(
+            self.route,
+            Route::OpenCodeModelConfigList { .. } | Route::OpenCodeModelConfigDetail { .. }
+        ) {
+            // Global actions.
+            match key.code {
+                KeyCode::Char('?') => {
+                    self.open_help();
+                    return Action::None;
+                }
+                KeyCode::Char('q') | KeyCode::Esc => {
+                    return self.on_back_key();
+                }
+                _ => {}
+            }
+            return self.on_content_key(key, data);
+        }
+
         if self.form.is_some() {
             return self.on_form_key(key, data);
         }
@@ -477,6 +499,13 @@ impl App {
                 KeyCode::Char('p') | KeyCode::Char('P') => self.main_proxy_action(data),
                 _ => Action::None,
             },
+            Route::OpenCodeModelConfigList { provider_id } => {
+                self.on_opencode_model_list_key(key, data, &provider_id)
+            }
+            Route::OpenCodeModelConfigDetail {
+                provider_id,
+                model_idx,
+            } => self.on_opencode_model_detail_key(key, data, &provider_id, model_idx),
         }
     }
     pub(crate) fn clamp_selections(&mut self, data: &UiData) {
@@ -557,6 +586,210 @@ impl App {
             self.config_webdav_idx = 0;
         } else {
             self.config_webdav_idx = self.config_webdav_idx.min(config_webdav_len - 1);
+        }
+    }
+
+    /// OpenCode ModelConfigList 页面按键处理
+    fn on_opencode_model_list_key(
+        &mut self,
+        key: KeyEvent,
+        _data: &UiData,
+        provider_id: &str,
+    ) -> Action {
+        let model_count = self
+            .form
+            .as_ref()
+            .and_then(|f| match f {
+                FormState::ProviderAdd(form) => Some(form.opencode_model_count()),
+                _ => None,
+            })
+            .unwrap_or(0);
+
+        match key.code {
+            // Esc 由全局 on_back_key 处理（pop_route_and_switch）
+            KeyCode::Up => {
+                if self.provider_idx > 0 {
+                    self.provider_idx -= 1;
+                }
+                Action::None
+            }
+            KeyCode::Down => {
+                if model_count > 0 && self.provider_idx < model_count - 1 {
+                    self.provider_idx += 1;
+                }
+                Action::None
+            }
+            KeyCode::Enter => {
+                // 编辑选中的 model
+                if model_count > 0 {
+                    let idx = self.provider_idx.min(model_count - 1);
+                    self.route = Route::OpenCodeModelConfigDetail {
+                        provider_id: provider_id.to_string(),
+                        model_idx: idx,
+                    };
+                }
+                Action::None
+            }
+            KeyCode::Char('n') => {
+                // 新建 model → 先添加空 draft，再进入 detail 编辑
+                if let Some(FormState::ProviderAdd(form)) = &mut self.form {
+                    let new_id = format!("model-{}", form.opencode_model_count() + 1);
+                    let draft = crate::provider::OpenCodeModelDraft::new(new_id);
+                    let _ = form.opencode_add_model(draft);
+                }
+                let new_count = self
+                    .form
+                    .as_ref()
+                    .and_then(|f| match f {
+                        FormState::ProviderAdd(form) => Some(form.opencode_model_count()),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+                self.route = Route::OpenCodeModelConfigDetail {
+                    provider_id: provider_id.to_string(),
+                    model_idx: new_count.saturating_sub(1), // 进入新建的 model
+                };
+                self.provider_idx = 0; // 聚焦到第一个字段（Model Name）
+                Action::None
+            }
+            KeyCode::Delete | KeyCode::Char('d') => {
+                // 删除选中的 model
+                if model_count > 0 {
+                    let idx = self.provider_idx.min(model_count - 1);
+                    if let Some(FormState::ProviderAdd(form)) = &mut self.form {
+                        if let Some(removed) = form.opencode_remove_model(idx) {
+                            let msg = if crate::cli::i18n::is_chinese() {
+                                format!("已删除模型 `{}`", removed.model_id)
+                            } else {
+                                format!("Deleted model `{}`", removed.model_id)
+                            };
+                            self.push_toast(msg, ToastKind::Success);
+                        }
+                    }
+                    // 修正索引
+                    let new_count = self
+                        .form
+                        .as_ref()
+                        .and_then(|f| match f {
+                            FormState::ProviderAdd(form) => Some(form.opencode_model_count()),
+                            _ => None,
+                        })
+                        .unwrap_or(0);
+                    if new_count == 0 {
+                        self.provider_idx = 0;
+                    } else if self.provider_idx >= new_count {
+                        self.provider_idx = new_count - 1;
+                    }
+                }
+                Action::None
+            }
+            _ => Action::None,
+        }
+    }
+
+    /// OpenCode ModelConfigDetail 页面按键处理
+    fn on_opencode_model_detail_key(
+        &mut self,
+        key: KeyEvent,
+        _data: &UiData,
+        provider_id: &str,
+        model_idx: usize,
+    ) -> Action {
+        // 4 个字段：0=model_name, 1=model_id, 2=input_limit, 3=output_limit
+        const DETAIL_FIELD_COUNT: usize = 4;
+
+        match key.code {
+            // Esc 由全局 on_back_key 处理（pop_route_and_switch）
+            KeyCode::Up => {
+                if self.provider_idx > 0 {
+                    self.provider_idx -= 1;
+                }
+                Action::None
+            }
+            KeyCode::Down => {
+                if self.provider_idx < DETAIL_FIELD_COUNT - 1 {
+                    self.provider_idx += 1;
+                }
+                Action::None
+            }
+            KeyCode::Enter | KeyCode::Char(' ') => {
+                // 编辑当前字段
+                let field = match self.provider_idx {
+                    0 => "model_name",
+                    1 => "model_id",
+                    2 => "input_limit",
+                    3 => "output_limit",
+                    _ => return Action::None,
+                };
+
+                // 获取当前值
+                let current_value =
+                    self.form
+                        .as_ref()
+                        .and_then(|f| match f {
+                            FormState::ProviderAdd(form) => form
+                                .opencode_models
+                                .get(model_idx)
+                                .map(|draft| match field {
+                                    "model_name" => draft.model_name.clone(),
+                                    "model_id" => draft.model_id.clone(),
+                                    "input_limit" => {
+                                        draft.input_limit.map(|v| v.to_string()).unwrap_or_default()
+                                    }
+                                    "output_limit" => draft
+                                        .output_limit
+                                        .map(|v| v.to_string())
+                                        .unwrap_or_default(),
+                                    _ => String::new(),
+                                }),
+                            _ => None,
+                        })
+                        .unwrap_or_default();
+
+                let title = match field {
+                    "model_name" => {
+                        if crate::cli::i18n::is_chinese() {
+                            "编辑模型名称"
+                        } else {
+                            "Edit Model Name"
+                        }
+                    }
+                    "model_id" => {
+                        if crate::cli::i18n::is_chinese() {
+                            "编辑模型 ID"
+                        } else {
+                            "Edit Model ID"
+                        }
+                    }
+                    "input_limit" => {
+                        if crate::cli::i18n::is_chinese() {
+                            "编辑输入限制"
+                        } else {
+                            "Edit Input Limit"
+                        }
+                    }
+                    "output_limit" => {
+                        if crate::cli::i18n::is_chinese() {
+                            "编辑输出限制"
+                        } else {
+                            "Edit Output Limit"
+                        }
+                    }
+                    _ => "",
+                };
+
+                self.open_editor(
+                    title.to_string(),
+                    crate::cli::tui::app::EditorKind::Plain,
+                    current_value,
+                    crate::cli::tui::app::EditorSubmit::OpenCodeModelFieldEdit { model_idx, field },
+                );
+                if let Some(editor) = self.editor.as_mut() {
+                    editor.mode = crate::cli::tui::app::EditorMode::Edit;
+                }
+                Action::None
+            }
+            _ => Action::None,
         }
     }
 }

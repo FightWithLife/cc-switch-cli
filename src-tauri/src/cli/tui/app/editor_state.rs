@@ -8,22 +8,39 @@ pub enum EditorKind {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum EditorSubmit {
-    PromptEdit { id: String },
+    PromptEdit {
+        id: String,
+    },
     ProviderFormApplyJson,
     ProviderFormApplyOpenClawModels,
     ProviderFormApplyCodexAuth,
     ProviderFormApplyCodexConfigToml,
     ProviderAdd,
-    ProviderEdit { id: String },
+    ProviderEdit {
+        id: String,
+    },
     McpAdd,
-    McpEdit { id: String },
-    ConfigCommonSnippet { app_type: AppType },
-    OpenClawWorkspaceFile { filename: String },
-    OpenClawDailyMemoryFile { filename: String },
+    McpEdit {
+        id: String,
+    },
+    ConfigCommonSnippet {
+        app_type: AppType,
+    },
+    OpenClawWorkspaceFile {
+        filename: String,
+    },
+    OpenClawDailyMemoryFile {
+        filename: String,
+    },
     ConfigOpenClawEnv,
     ConfigOpenClawTools,
     ConfigOpenClawAgents,
     ConfigWebDavSettings,
+    /// 编辑 OpenCode model 的某个字段
+    OpenCodeModelFieldEdit {
+        model_idx: usize,
+        field: &'static str, // "model_name" | "model_id" | "input_limit" | "output_limit"
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

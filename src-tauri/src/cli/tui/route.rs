@@ -4,7 +4,18 @@ use crate::app_config::AppType;
 pub enum Route {
     Main,
     Providers,
-    ProviderDetail { id: String },
+    ProviderDetail {
+        id: String,
+    },
+    /// OpenCode model config list page (multi-model management)
+    OpenCodeModelConfigList {
+        provider_id: String,
+    },
+    /// OpenCode model config detail page (single model editing)
+    OpenCodeModelConfigDetail {
+        provider_id: String,
+        model_idx: usize,
+    },
     Mcp,
     Prompts,
     Config,
@@ -17,7 +28,9 @@ pub enum Route {
     Skills,
     SkillsDiscover,
     SkillsRepos,
-    SkillDetail { directory: String },
+    SkillDetail {
+        directory: String,
+    },
     Settings,
     SettingsProxy,
 }

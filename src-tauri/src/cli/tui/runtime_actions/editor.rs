@@ -59,6 +59,9 @@ pub(super) fn submit(
         EditorSubmit::ConfigOpenClawTools => submit_openclaw_tools(ctx, content),
         EditorSubmit::ConfigOpenClawAgents => submit_openclaw_agents(ctx, content),
         EditorSubmit::ConfigWebDavSettings => submit_webdav_settings(ctx, content),
+        EditorSubmit::OpenCodeModelFieldEdit { model_idx, field } => {
+            submit_opencode_model_field_edit(ctx, model_idx, field, content)
+        }
     }
 }
 
@@ -743,6 +746,114 @@ fn submit_webdav_settings(
     ctx.app
         .push_toast(texts::tui_toast_webdav_settings_saved(), ToastKind::Success);
     *ctx.data = UiData::load(&ctx.app.app_type)?;
+    Ok(())
+}
+
+fn submit_opencode_model_field_edit(
+    ctx: &mut RuntimeActionContext<'_>,
+    model_idx: usize,
+    field: &'static str,
+    content: String,
+) -> Result<(), AppError> {
+    let trimmed = content.trim().to_string();
+
+    let Some(FormState::ProviderAdd(form)) = &mut ctx.app.form else {
+        ctx.app.editor = None;
+        return Ok(());
+    };
+
+    if model_idx >= form.opencode_models.len() {
+        ctx.app.editor = None;
+        ctx.app.push_toast(
+            if crate::cli::i18n::is_chinese() {
+                format!("模型索引 {} 超出范围", model_idx)
+            } else {
+                format!("Model index {} out of range", model_idx)
+            },
+            ToastKind::Error,
+        );
+        return Ok(());
+    }
+
+    match field {
+        "model_name" => {
+            form.opencode_models[model_idx].model_name = trimmed;
+        }
+        "model_id" => {
+            if trimmed.is_empty() {
+                ctx.app.push_toast(
+                    if crate::cli::i18n::is_chinese() {
+                        "模型 ID 不能为空".to_string()
+                    } else {
+                        "Model ID cannot be empty".to_string()
+                    },
+                    ToastKind::Error,
+                );
+                return Ok(());
+            }
+            // 检查重复（不可变借用完成后才可变借用）
+            let duplicate = form
+                .opencode_models
+                .iter()
+                .enumerate()
+                .any(|(i, m)| i != model_idx && m.model_id == trimmed);
+            if duplicate {
+                ctx.app.push_toast(
+                    if crate::cli::i18n::is_chinese() {
+                        format!("模型 ID `{}` 已存在", trimmed)
+                    } else {
+                        format!("Model ID `{}` already exists", trimmed)
+                    },
+                    ToastKind::Error,
+                );
+                return Ok(());
+            }
+            let old_id = form.opencode_models[model_idx].model_id.clone();
+            form.opencode_models[model_idx].original_model_id = Some(old_id.clone());
+            form.opencode_models[model_idx].model_id = trimmed.clone();
+            // 更新 current model
+            if form.opencode_model_id.value.trim() == old_id {
+                form.opencode_model_id.set(&trimmed);
+            }
+        }
+        "input_limit" => {
+            if trimmed.is_empty() {
+                form.opencode_models[model_idx].input_limit = None;
+            } else if let Ok(val) = trimmed.parse::<u64>() {
+                form.opencode_models[model_idx].input_limit = Some(val);
+            } else {
+                ctx.app.push_toast(
+                    if crate::cli::i18n::is_chinese() {
+                        "无效的输入限制值".to_string()
+                    } else {
+                        "Invalid input limit value".to_string()
+                    },
+                    ToastKind::Error,
+                );
+                return Ok(());
+            }
+        }
+        "output_limit" => {
+            if trimmed.is_empty() {
+                form.opencode_models[model_idx].output_limit = None;
+            } else if let Ok(val) = trimmed.parse::<u64>() {
+                form.opencode_models[model_idx].output_limit = Some(val);
+            } else {
+                ctx.app.push_toast(
+                    if crate::cli::i18n::is_chinese() {
+                        "无效的输出限制值".to_string()
+                    } else {
+                        "Invalid output limit value".to_string()
+                    },
+                    ToastKind::Error,
+                );
+                return Ok(());
+            }
+        }
+        _ => {}
+    }
+
+    ctx.app.editor = None;
     Ok(())
 }
 

@@ -39,6 +39,7 @@ pub(crate) fn add_form_key_items(
                     }
                     Some(
                         ProviderAddField::ClaudeModelConfig
+                        | ProviderAddField::OpenCodeModelConfig
                         | ProviderAddField::CommonSnippet
                         | ProviderAddField::OpenClawModels,
                     ) => texts::tui_key_open(),

@@ -338,6 +338,13 @@ pub(crate) fn provider_field_label_and_value(
         ProviderAddField::OpenCodeModelName => texts::tui_label_opencode_model_name().to_string(),
         ProviderAddField::OpenCodeModelContextLimit => texts::tui_label_context_limit().to_string(),
         ProviderAddField::OpenCodeModelOutputLimit => texts::tui_label_output_limit().to_string(),
+        ProviderAddField::OpenCodeModelConfig => {
+            if i18n::is_chinese() {
+                "模型配置".to_string()
+            } else {
+                "Model Config".to_string()
+            }
+        }
         ProviderAddField::CommonConfigDivider => "- - - - - - - - -".to_string(),
         ProviderAddField::CommonSnippet => texts::tui_config_item_common_snippet().to_string(),
         ProviderAddField::IncludeCommonConfig => texts::tui_form_attach_common_config().to_string(),
@@ -378,6 +385,20 @@ pub(crate) fn provider_field_label_and_value(
             }
         }
         ProviderAddField::OpenClawModels => provider.openclaw_models_summary(),
+        ProviderAddField::OpenCodeModelConfig => {
+            let count = provider.opencode_model_count();
+            if count == 0 {
+                if i18n::is_chinese() {
+                    "0 个模型".to_string()
+                } else {
+                    "0 models".to_string()
+                }
+            } else if i18n::is_chinese() {
+                format!("{} 个模型", count)
+            } else {
+                format!("{} model{}", count, if count == 1 { "" } else { "s" })
+            }
+        }
         ProviderAddField::CommonConfigDivider => "- - - - - - - - - -".to_string(),
         ProviderAddField::CommonSnippet => texts::tui_key_open().to_string(),
         _ => provider
