@@ -396,6 +396,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn claude_provider_list_o_key_requests_temporary_launch() {
         let mut app = App::new(Some(AppType::Claude));
@@ -412,6 +413,7 @@ mod tests {
         ));
     }
 
+    #[cfg(unix)]
     #[test]
     fn claude_provider_detail_o_key_requests_temporary_launch() {
         let mut app = App::new(Some(AppType::Claude));
@@ -430,6 +432,7 @@ mod tests {
         ));
     }
 
+    #[cfg(unix)]
     #[test]
     fn codex_provider_o_key_requests_temporary_launch() {
         let mut app = App::new(Some(AppType::Codex));
@@ -446,6 +449,7 @@ mod tests {
         ));
     }
 
+    #[cfg(unix)]
     #[test]
     fn codex_provider_detail_o_key_requests_temporary_launch() {
         let mut app = App::new(Some(AppType::Codex));

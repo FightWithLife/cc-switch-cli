@@ -427,6 +427,7 @@ pub struct App {
     pub filter: FilterState,
     pub editor: Option<EditorState>,
     pub form: Option<FormState>,
+    pub opencode_draft: Option<OpenCodeProviderDraft>,
     pub pending_overlay: Option<Overlay>,
     pub overlay: Overlay,
     pub toast: Option<Toast>,

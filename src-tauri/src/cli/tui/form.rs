@@ -248,6 +248,7 @@ pub enum ProviderAddField {
     OpenCodeModelName,
     OpenCodeModelContextLimit,
     OpenCodeModelOutputLimit,
+    OpenCodeModelConfig,
     CommonConfigDivider,
     CommonSnippet,
     IncludeCommonConfig,
@@ -322,7 +323,9 @@ pub struct ProviderAddFormState {
     pub opencode_model_name: TextInput,
     pub opencode_model_context_limit: TextInput,
     pub opencode_model_output_limit: TextInput,
+    pub opencode_model_idx: usize,
     opencode_model_original_id: Option<String>,
+    pub opencode_models: Vec<crate::provider::OpenCodeModelDraft>,
     initial_snapshot: Value,
 }
 

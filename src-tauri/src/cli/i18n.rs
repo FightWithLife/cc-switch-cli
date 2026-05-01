@@ -1530,6 +1530,182 @@ pub mod texts {
         }
     }
 
+    pub fn tui_label_opencode_model_config() -> &'static str {
+        if is_chinese() {
+            "模型配置"
+        } else {
+            "Model Config"
+        }
+    }
+
+    pub fn tui_opencode_model_count(count: usize) -> String {
+        if is_chinese() {
+            format!("{count} 个模型")
+        } else {
+            format!("{count} model{}", if count == 1 { "" } else { "s" })
+        }
+    }
+
+    pub fn tui_opencode_model_list_title() -> &'static str {
+        if is_chinese() {
+            " 模型配置 "
+        } else {
+            " Model Config "
+        }
+    }
+
+    pub fn tui_opencode_model_no_data() -> &'static str {
+        if is_chinese() {
+            "无可用数据。请先打开供应商编辑页面。"
+        } else {
+            "No data available. Open the provider edit form first."
+        }
+    }
+
+    pub fn tui_opencode_model_empty_list() -> &'static str {
+        if is_chinese() {
+            "未配置模型。按 [n] 添加。"
+        } else {
+            "No models configured. Press [n] to add one."
+        }
+    }
+
+    pub fn tui_opencode_model_list_footer() -> &'static str {
+        if is_chinese() {
+            "[Enter] 编辑模型  [n] 新建模型  [Del] 删除  [Esc] 返回"
+        } else {
+            "[Enter] edit model  [n] new model  [Del] delete  [Esc] back"
+        }
+    }
+
+    pub fn tui_opencode_model_new_title() -> &'static str {
+        if is_chinese() {
+            " 新建模型 "
+        } else {
+            " New Model "
+        }
+    }
+
+    pub fn tui_opencode_model_edit_title(model_id: &str) -> String {
+        if is_chinese() {
+            format!(" 编辑模型 {model_id} ")
+        } else {
+            format!(" Edit Model {model_id} ")
+        }
+    }
+
+    pub fn tui_opencode_model_name_label() -> &'static str {
+        if is_chinese() {
+            "模型名称"
+        } else {
+            "Model Name"
+        }
+    }
+
+    pub fn tui_opencode_model_input_limit_label() -> &'static str {
+        if is_chinese() {
+            "输入限制"
+        } else {
+            "Input Limit"
+        }
+    }
+
+    pub fn tui_opencode_model_output_limit_label() -> &'static str {
+        if is_chinese() {
+            "输出限制"
+        } else {
+            "Output Limit"
+        }
+    }
+
+    pub fn tui_opencode_model_new_hint() -> &'static str {
+        if is_chinese() {
+            "新模型将在保存时创建。\n按 [Esc] 返回列表。"
+        } else {
+            "New model will be created on save.\nPress [Esc] to go back."
+        }
+    }
+
+    pub fn tui_opencode_model_not_found() -> &'static str {
+        if is_chinese() {
+            "模型数据不存在。"
+        } else {
+            "Model data not found."
+        }
+    }
+
+    pub fn tui_opencode_model_detail_footer() -> &'static str {
+        if is_chinese() {
+            "[↑/↓] 切换字段  [Enter] 编辑  [Ctrl+S] 保存  [Esc] 返回"
+        } else {
+            "[↑/↓] switch field  [Enter] edit  [Ctrl+S] save  [Esc] back"
+        }
+    }
+
+    pub fn tui_opencode_model_finish_blank_first() -> &'static str {
+        if is_chinese() {
+            "请先完成当前空模型。"
+        } else {
+            "Finish the blank model first."
+        }
+    }
+
+    pub fn tui_opencode_model_delete_title() -> &'static str {
+        if is_chinese() {
+            "删除模型"
+        } else {
+            "Delete Model"
+        }
+    }
+
+    pub fn tui_opencode_model_delete_message(model_id: &str) -> String {
+        if is_chinese() {
+            format!("确定删除模型 `{model_id}` 吗？")
+        } else {
+            format!("Delete model `{model_id}`?")
+        }
+    }
+
+    pub fn tui_opencode_model_fetch_base_url_required() -> &'static str {
+        if is_chinese() {
+            "请先填写 Base URL。"
+        } else {
+            "Base URL is required before fetching models."
+        }
+    }
+
+    pub fn tui_opencode_model_edit_name_title() -> &'static str {
+        if is_chinese() {
+            "编辑模型名称"
+        } else {
+            "Edit Model Name"
+        }
+    }
+
+    pub fn tui_opencode_model_edit_id_title() -> &'static str {
+        if is_chinese() {
+            "编辑模型 ID"
+        } else {
+            "Edit Model ID"
+        }
+    }
+
+    pub fn tui_opencode_model_edit_input_limit_title() -> &'static str {
+        if is_chinese() {
+            "编辑输入限制"
+        } else {
+            "Edit Input Limit"
+        }
+    }
+
+    pub fn tui_opencode_model_edit_output_limit_title() -> &'static str {
+        if is_chinese() {
+            "编辑输出限制"
+        } else {
+            "Edit Output Limit"
+        }
+    }
+
     pub fn tui_label_command() -> &'static str {
         if is_chinese() {
             "命令"
@@ -1767,12 +1943,10 @@ pub mod texts {
             } else {
                 "选择模型".to_string()
             }
+        } else if fetching {
+            "Select Model (Fetching...)".to_string()
         } else {
-            if fetching {
-                "Select Model (Fetching...)".to_string()
-            } else {
-                "Select Model".to_string()
-            }
+            "Select Model".to_string()
         }
     }
 
@@ -4807,12 +4981,10 @@ pub mod texts {
             } else {
                 "仓库已禁用。".to_string()
             }
+        } else if enabled {
+            "Repository enabled.".to_string()
         } else {
-            if enabled {
-                "Repository enabled.".to_string()
-            } else {
-                "Repository disabled.".to_string()
-            }
+            "Repository disabled.".to_string()
         }
     }
 
@@ -4823,12 +4995,10 @@ pub mod texts {
             } else {
                 "已恢复 Claude Code 初次安装确认。".to_string()
             }
+        } else if enabled {
+            "Claude Code onboarding confirmation will be skipped.".to_string()
         } else {
-            if enabled {
-                "Claude Code onboarding confirmation will be skipped.".to_string()
-            } else {
-                "Claude Code onboarding confirmation restored.".to_string()
-            }
+            "Claude Code onboarding confirmation restored.".to_string()
         }
     }
 
@@ -4839,12 +5009,10 @@ pub mod texts {
             } else {
                 "已关闭 Claude Code for VSCode 插件联动。".to_string()
             }
+        } else if enabled {
+            "Claude Code for VSCode integration enabled.".to_string()
         } else {
-            if enabled {
-                "Claude Code for VSCode integration enabled.".to_string()
-            } else {
-                "Claude Code for VSCode integration disabled.".to_string()
-            }
+            "Claude Code for VSCode integration disabled.".to_string()
         }
     }
 
@@ -4925,6 +5093,14 @@ pub mod texts {
             "供应商编辑流程已完成。"
         } else {
             "Provider edit flow finished."
+        }
+    }
+
+    pub fn tui_toast_provider_db_committed_live_sync_failed(reason: &str) -> String {
+        if is_chinese() {
+            format!("DB 已提交，但 live JSON 同步失败: {reason}")
+        } else {
+            format!("DB committed, JSON sync failed: {reason}")
         }
     }
 
@@ -7517,16 +7693,14 @@ pub mod texts {
                     "确认恢复 Claude Code 初次安装确认？\n将从 {path} 删除 hasCompletedOnboarding"
                 )
             }
+        } else if enable {
+            format!(
+                "Enable skipping Claude Code onboarding confirmation?\nWrites hasCompletedOnboarding=true to {path}"
+            )
         } else {
-            if enable {
-                format!(
-                    "Enable skipping Claude Code onboarding confirmation?\nWrites hasCompletedOnboarding=true to {path}"
-                )
-            } else {
-                format!(
-                    "Disable skipping Claude Code onboarding confirmation?\nRemoves hasCompletedOnboarding from {path}"
-                )
-            }
+            format!(
+                "Disable skipping Claude Code onboarding confirmation?\nRemoves hasCompletedOnboarding from {path}"
+            )
         }
     }
 
@@ -7537,12 +7711,10 @@ pub mod texts {
             } else {
                 "✓ 已恢复 Claude Code 初次安装确认".to_string()
             }
+        } else if enable {
+            "✓ Skip Claude Code onboarding confirmation enabled".to_string()
         } else {
-            if enable {
-                "✓ Skip Claude Code onboarding confirmation enabled".to_string()
-            } else {
-                "✓ Claude Code onboarding confirmation restored".to_string()
-            }
+            "✓ Claude Code onboarding confirmation restored".to_string()
         }
     }
 
@@ -7571,16 +7743,14 @@ pub mod texts {
             } else {
                 "确认关闭 Claude Code for VSCode 插件联动？".to_string()
             }
+        } else if enable {
+            format!(
+                "Enable Claude Code for VSCode integration?\nWrites primaryApiKey=\"any\" to {path}"
+            )
         } else {
-            if enable {
-                format!(
-                    "Enable Claude Code for VSCode integration?\nWrites primaryApiKey=\"any\" to {path}"
-                )
-            } else {
-                format!(
-                    "Disable Claude Code for VSCode integration?\nRemoves primaryApiKey from {path}"
-                )
-            }
+            format!(
+                "Disable Claude Code for VSCode integration?\nRemoves primaryApiKey from {path}"
+            )
         }
     }
 
@@ -7591,12 +7761,10 @@ pub mod texts {
             } else {
                 "✓ 已关闭 Claude Code for VSCode 插件联动".to_string()
             }
+        } else if enable {
+            "✓ Claude Code for VSCode integration enabled".to_string()
         } else {
-            if enable {
-                "✓ Claude Code for VSCode integration enabled".to_string()
-            } else {
-                "✓ Claude Code for VSCode integration disabled".to_string()
-            }
+            "✓ Claude Code for VSCode integration disabled".to_string()
         }
     }
 
@@ -7828,12 +7996,10 @@ pub mod texts {
             } else {
                 format!("编辑 {app} 的通用配置片段（JSON 对象，留空则清除）：")
             }
+        } else if is_codex {
+            format!("Edit common config snippet for {app} (TOML; empty to clear):")
         } else {
-            if is_codex {
-                format!("Edit common config snippet for {app} (TOML; empty to clear):")
-            } else {
-                format!("Edit common config snippet for {app} (JSON object; empty to clear):")
-            }
+            format!("Edit common config snippet for {app} (JSON object; empty to clear):")
         }
     }
 

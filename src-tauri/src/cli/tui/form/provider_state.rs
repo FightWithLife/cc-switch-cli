@@ -76,7 +76,9 @@ impl ProviderAddFormState {
             opencode_model_name: TextInput::new(""),
             opencode_model_context_limit: TextInput::new(""),
             opencode_model_output_limit: TextInput::new(""),
+            opencode_model_idx: 0,
             opencode_model_original_id: None,
+            opencode_models: Vec::new(),
             initial_snapshot: Value::Null,
         };
         form.capture_initial_snapshot();
@@ -187,10 +189,7 @@ impl ProviderAddFormState {
                 fields.push(ProviderAddField::OpenCodeNpmPackage);
                 fields.push(ProviderAddField::OpenCodeApiKey);
                 fields.push(ProviderAddField::OpenCodeBaseUrl);
-                fields.push(ProviderAddField::OpenCodeModelId);
-                fields.push(ProviderAddField::OpenCodeModelName);
-                fields.push(ProviderAddField::OpenCodeModelContextLimit);
-                fields.push(ProviderAddField::OpenCodeModelOutputLimit);
+                fields.push(ProviderAddField::OpenCodeModelConfig);
             }
             AppType::OpenClaw => {
                 fields.push(ProviderAddField::OpenClawApiProtocol);
@@ -231,6 +230,7 @@ impl ProviderAddFormState {
             ProviderAddField::OpenCodeModelName => Some(&self.opencode_model_name),
             ProviderAddField::OpenCodeModelContextLimit => Some(&self.opencode_model_context_limit),
             ProviderAddField::OpenCodeModelOutputLimit => Some(&self.opencode_model_output_limit),
+            ProviderAddField::OpenCodeModelConfig => None,
             ProviderAddField::CodexWireApi
             | ProviderAddField::CodexRequiresOpenaiAuth
             | ProviderAddField::ClaudeApiFormat
@@ -271,6 +271,7 @@ impl ProviderAddFormState {
             ProviderAddField::OpenCodeModelOutputLimit => {
                 Some(&mut self.opencode_model_output_limit)
             }
+            ProviderAddField::OpenCodeModelConfig => None,
             ProviderAddField::CodexWireApi
             | ProviderAddField::CodexRequiresOpenaiAuth
             | ProviderAddField::ClaudeApiFormat
@@ -510,20 +511,6 @@ impl ProviderAddFormState {
         Ok(())
     }
 
-    pub(super) fn opencode_primary_model_id(&self) -> Option<String> {
-        let model_id = self.opencode_model_id.value.trim();
-        if !model_id.is_empty() {
-            return Some(model_id.to_string());
-        }
-
-        let model_name = self.opencode_model_name.value.trim();
-        if !model_name.is_empty() {
-            return Some(model_name.to_string());
-        }
-
-        None
-    }
-
     pub(super) fn openclaw_primary_model_id(&self) -> Option<String> {
         let model_id = self.opencode_model_id.value.trim();
         if model_id.is_empty() {
@@ -541,6 +528,183 @@ impl ProviderAddFormState {
     pub(crate) fn openclaw_models_editor_text(&self) -> String {
         serde_json::to_string_pretty(&Value::Array(self.openclaw_models.clone()))
             .unwrap_or_else(|_| "[]".to_string())
+    }
+
+    pub(crate) fn opencode_model_display_name(&self) -> String {
+        let model_name = self.opencode_model_name.value.trim();
+        if !model_name.is_empty() {
+            return model_name.to_string();
+        }
+
+        let model_id = self.opencode_model_id.value.trim();
+        if model_id.is_empty() {
+            String::new()
+        } else {
+            model_id.to_uppercase()
+        }
+    }
+
+    pub(crate) fn opencode_model_summary(&self) -> String {
+        texts::tui_opencode_model_count(self.opencode_models.len())
+    }
+
+    pub(crate) fn sync_current_opencode_model(&mut self) -> Result<(), String> {
+        if !matches!(self.app_type, AppType::OpenCode) || self.opencode_models.is_empty() {
+            return Ok(());
+        }
+
+        let idx = self
+            .opencode_model_idx
+            .min(self.opencode_models.len().saturating_sub(1));
+        let model_id = self.opencode_model_id.value.trim().to_string();
+        if !model_id.is_empty()
+            && self
+                .opencode_models
+                .iter()
+                .enumerate()
+                .any(|(other_idx, draft)| other_idx != idx && draft.model_id == model_id)
+        {
+            return Err(format!("Duplicated model id `{model_id}`"));
+        }
+
+        let input_limit = parse_optional_limit(&self.opencode_model_context_limit.value)?;
+        let output_limit = parse_optional_limit(&self.opencode_model_output_limit.value)?;
+
+        let draft = &mut self.opencode_models[idx];
+        draft.model_id = model_id.clone();
+        draft.model_name = self.opencode_model_name.value.trim().to_string();
+        draft.input_limit = input_limit;
+        draft.output_limit = output_limit;
+        draft.original_model_id = (!model_id.is_empty()).then_some(model_id.clone());
+        self.opencode_model_idx = idx;
+        self.opencode_model_original_id = (!model_id.is_empty()).then_some(model_id);
+        Ok(())
+    }
+
+    pub(crate) fn load_current_opencode_model_fields(&mut self) {
+        if !matches!(self.app_type, AppType::OpenCode) {
+            return;
+        }
+
+        if self.opencode_models.is_empty() {
+            self.opencode_model_idx = 0;
+            self.opencode_model_original_id = None;
+            self.opencode_model_id.set("");
+            self.opencode_model_name.set("");
+            self.opencode_model_context_limit.set("");
+            self.opencode_model_output_limit.set("");
+            return;
+        }
+
+        self.opencode_model_idx = self
+            .opencode_model_idx
+            .min(self.opencode_models.len().saturating_sub(1));
+        let draft = &self.opencode_models[self.opencode_model_idx];
+        self.opencode_model_original_id = (!draft.model_id.trim().is_empty())
+            .then(|| draft.model_id.clone())
+            .or_else(|| draft.original_model_id.clone());
+        self.opencode_model_id.set(&draft.model_id);
+        self.opencode_model_name.set(&draft.model_name);
+        self.opencode_model_context_limit.set(
+            draft
+                .input_limit
+                .map(|value| value.to_string())
+                .unwrap_or_default(),
+        );
+        self.opencode_model_output_limit.set(
+            draft
+                .output_limit
+                .map(|value| value.to_string())
+                .unwrap_or_default(),
+        );
+    }
+
+    pub(crate) fn cycle_opencode_model(&mut self) -> Result<(), String> {
+        if self.opencode_models.is_empty() {
+            return Ok(());
+        }
+        self.sync_current_opencode_model()?;
+        self.opencode_model_idx = (self.opencode_model_idx + 1) % self.opencode_models.len();
+        self.load_current_opencode_model_fields();
+        Ok(())
+    }
+
+    pub(crate) fn add_opencode_model(&mut self) -> Result<(), String> {
+        if self
+            .opencode_models
+            .iter()
+            .any(|draft| draft.model_id.trim().is_empty())
+        {
+            return Err(texts::tui_opencode_model_finish_blank_first().to_string());
+        }
+
+        if !self.opencode_models.is_empty() {
+            self.sync_current_opencode_model()?;
+        }
+        self.opencode_models
+            .push(crate::provider::OpenCodeModelDraft::new(String::new()));
+        self.opencode_model_idx = self.opencode_models.len().saturating_sub(1);
+        self.load_current_opencode_model_fields();
+        Ok(())
+    }
+
+    pub(crate) fn delete_current_opencode_model(&mut self) {
+        if self.opencode_models.is_empty() {
+            self.load_current_opencode_model_fields();
+            return;
+        }
+
+        let idx = self
+            .opencode_model_idx
+            .min(self.opencode_models.len().saturating_sub(1));
+        self.opencode_models.remove(idx);
+        if self.opencode_models.is_empty() {
+            self.opencode_model_idx = 0;
+        } else {
+            self.opencode_model_idx = idx.min(self.opencode_models.len().saturating_sub(1));
+        }
+        self.load_current_opencode_model_fields();
+    }
+
+    pub(crate) fn effective_opencode_models(
+        &self,
+    ) -> Result<Vec<crate::provider::OpenCodeModelDraft>, String> {
+        if !matches!(self.app_type, AppType::OpenCode) {
+            return Ok(self.opencode_models.clone());
+        }
+
+        let mut models = self.opencode_models.clone();
+        if models.is_empty() {
+            return Ok(models);
+        }
+
+        let idx = self.opencode_model_idx.min(models.len().saturating_sub(1));
+        models[idx].model_id = self.opencode_model_id.value.trim().to_string();
+        models[idx].model_name = self.opencode_model_name.value.trim().to_string();
+        models[idx].input_limit = parse_optional_limit(&self.opencode_model_context_limit.value)?;
+        models[idx].output_limit = parse_optional_limit(&self.opencode_model_output_limit.value)?;
+        Ok(models)
+    }
+
+    pub(crate) fn validate_opencode_for_save(&self) -> Result<(), String> {
+        if !matches!(self.app_type, AppType::OpenCode) {
+            return Ok(());
+        }
+
+        let models = self.effective_opencode_models()?;
+        for (idx, draft) in models.iter().enumerate() {
+            if draft.model_id.trim().is_empty() {
+                return Err("Model ID is required".to_string());
+            }
+            if models
+                .iter()
+                .enumerate()
+                .any(|(other_idx, other)| other_idx != idx && other.model_id == draft.model_id)
+            {
+                return Err(format!("Duplicated model id `{}`", draft.model_id));
+            }
+        }
+        Ok(())
     }
 
     pub fn apply_openclaw_models_value(&mut self, models_value: Value) -> Result<(), String> {
@@ -562,6 +726,21 @@ impl ProviderAddFormState {
         settings_obj.insert("models".to_string(), models_value);
         self.apply_provider_json_value_to_fields(provider_value)
     }
+}
+
+fn parse_optional_limit(value: &str) -> Result<Option<u64>, String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return Ok(None);
+    }
+
+    let parsed = trimmed
+        .parse::<u64>()
+        .map_err(|_| "Must be positive integer".to_string())?;
+    if parsed == 0 || parsed > u32::MAX as u64 {
+        return Err("Must be positive integer".to_string());
+    }
+    Ok(Some(parsed))
 }
 
 pub(crate) fn resolve_provider_id_for_submit(

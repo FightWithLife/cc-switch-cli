@@ -11,7 +11,7 @@ pub fn get_gemini_dir() -> PathBuf {
         return custom;
     }
 
-    dirs::home_dir()
+    crate::config::home_dir()
         .expect("无法获取用户主目录")
         .join(".gemini")
 }

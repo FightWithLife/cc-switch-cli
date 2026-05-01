@@ -1,5 +1,4 @@
 use clap::Args;
-use flate2::read::GzDecoder;
 use minisign_verify::{PublicKey, Signature};
 use semver::Version;
 use serde::Deserialize;
@@ -8,7 +7,6 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tar::Archive;
 use tempfile::TempDir;
 use url::Url;
 
@@ -531,7 +529,7 @@ fn asset_name_from_url(url: &str) -> Result<String, AppError> {
         .map_err(|e| AppError::Message(format!("Invalid asset URL '{url}': {e}")))?;
     let asset_name = parsed
         .path_segments()
-        .and_then(|segments| segments.last())
+        .and_then(|mut segments| segments.next_back())
         .filter(|value| !value.is_empty())
         .ok_or_else(|| AppError::Message(format!("Asset URL has no file name: {url}")))?;
 
@@ -1183,11 +1181,11 @@ fn extract_tar_binary(_archive_path: &Path, _extract_dir: &Path) -> Result<PathB
 fn replace_current_binary(new_binary_path: &Path) -> Result<(), AppError> {
     #[cfg(windows)]
     {
-        return self_replace::self_replace(new_binary_path).map_err(|e| {
+        self_replace::self_replace(new_binary_path).map_err(|e| {
             AppError::Message(format!(
                 "Failed to replace running executable on Windows: {e}"
             ))
-        });
+        })
     }
 
     #[cfg(not(windows))]

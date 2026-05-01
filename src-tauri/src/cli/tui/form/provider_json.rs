@@ -250,63 +250,57 @@ impl ProviderAddFormState {
                     settings_obj.remove("options");
                 }
 
-                let mut models_value = settings_obj
-                    .remove("models")
-                    .unwrap_or_else(|| Value::Object(serde_json::Map::new()));
-                if !models_value.is_object() {
-                    models_value = Value::Object(serde_json::Map::new());
-                }
-                let models_obj = models_value
-                    .as_object_mut()
-                    .expect("models must be a JSON object");
-
-                let current_model_id = self.opencode_primary_model_id();
-                if let Some(original_id) = self.opencode_model_original_id.as_deref() {
-                    if current_model_id.as_deref() != Some(original_id) {
-                        models_obj.remove(original_id);
+                let effective_models = self
+                    .effective_opencode_models()
+                    .unwrap_or_else(|_| self.opencode_models.clone());
+                let mut models_obj = serde_json::Map::new();
+                for draft in &effective_models {
+                    if draft.model_id.trim().is_empty() {
+                        continue;
                     }
-                }
-
-                if let Some(model_id) = current_model_id {
-                    let mut model_obj = match models_obj.remove(&model_id) {
-                        Some(Value::Object(map)) => map,
-                        _ => serde_json::Map::new(),
+                    let mut model_obj = draft.extra.as_object().cloned().unwrap_or_default();
+                    let model_name = if draft.model_name.trim().is_empty() {
+                        draft.model_id.to_uppercase()
+                    } else {
+                        draft.model_name.clone()
                     };
-                    let model_name = self.opencode_model_name.value.trim().to_string();
-                    model_obj.insert(
-                        "name".to_string(),
-                        json!(if model_name.is_empty() {
-                            model_id.as_str()
-                        } else {
-                            model_name.as_str()
-                        }),
-                    );
+                    model_obj.insert("name".to_string(), json!(model_name));
 
-                    let limit_value = model_obj
-                        .entry("limit".to_string())
-                        .or_insert_with(|| Value::Object(serde_json::Map::new()));
-                    if !limit_value.is_object() {
-                        *limit_value = Value::Object(serde_json::Map::new());
-                    }
-                    let limit_obj = limit_value
-                        .as_object_mut()
-                        .expect("limit must be a JSON object");
-
-                    set_or_remove_u64(
-                        limit_obj,
-                        "context",
-                        &self.opencode_model_context_limit.value,
-                    );
-                    set_or_remove_u64(limit_obj, "output", &self.opencode_model_output_limit.value);
-                    if limit_obj.is_empty() {
+                    if draft.input_limit.is_some() || draft.output_limit.is_some() {
+                        let mut limit_obj = serde_json::Map::new();
+                        if let Some(context) = draft.input_limit {
+                            limit_obj.insert("context".to_string(), json!(context));
+                        }
+                        if let Some(output) = draft.output_limit {
+                            limit_obj.insert("output".to_string(), json!(output));
+                        }
+                        model_obj.insert("limit".to_string(), Value::Object(limit_obj));
+                    } else {
                         model_obj.remove("limit");
                     }
 
-                    models_obj.insert(model_id, Value::Object(model_obj));
+                    models_obj.insert(draft.model_id.clone(), Value::Object(model_obj));
                 }
+                settings_obj.insert("models".to_string(), Value::Object(models_obj));
 
-                if !models_obj.is_empty() {
-                    settings_obj.insert("models".to_string(), models_value);
+                if let Some(model_id) = effective_models
+                    .get(
+                        self.opencode_model_idx
+                            .min(effective_models.len().saturating_sub(1)),
+                    )
+                    .map(|draft| draft.model_id.clone())
+                    .filter(|id| !id.trim().is_empty())
+                    .or_else(|| {
+                        effective_models
+                            .iter()
+                            .find(|draft| !draft.model_id.trim().is_empty())
+                            .map(|draft| draft.model_id.clone())
+                    })
+                    .filter(|id| !id.trim().is_empty())
+                {
+                    settings_obj.insert("currentModel".to_string(), json!(model_id));
+                } else {
+                    settings_obj.remove("currentModel");
                 }
             }
             AppType::OpenClaw => {
@@ -603,25 +597,12 @@ fn set_or_remove_trimmed(obj: &mut serde_json::Map<String, Value>, key: &str, ra
     }
 }
 
-fn set_or_remove_u64(obj: &mut serde_json::Map<String, Value>, key: &str, raw: &str) {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        obj.remove(key);
-    } else if let Ok(value) = trimmed.parse::<u64>() {
-        obj.insert(key.to_string(), json!(value));
-    } else {
-        obj.remove(key);
-    }
-}
-
 fn strip_common_json_values(target: &mut Value, common: &Value) {
     if let (Value::Object(target_obj), Value::Object(common_obj)) = (target, common) {
         let keys_to_remove = common_obj
             .iter()
             .filter_map(|(key, common_value)| {
-                let Some(target_value) = target_obj.get_mut(key) else {
-                    return None;
-                };
+                let target_value = target_obj.get_mut(key)?;
 
                 if value_matches_common(target_value, common_value) {
                     return Some(key.clone());

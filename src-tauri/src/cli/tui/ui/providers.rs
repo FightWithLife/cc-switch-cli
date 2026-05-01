@@ -190,10 +190,7 @@ pub(super) fn render_provider_detail(
         if matches!(app.app_type, crate::app_config::AppType::OpenClaw) && row.is_in_config {
             keys.push(("x", texts::tui_key_set_default()));
         } else if !matches!(app.app_type, crate::app_config::AppType::OpenClaw) {
-            if matches!(
-                app.app_type,
-                crate::app_config::AppType::Claude | crate::app_config::AppType::Codex
-            ) {
+            if crate::cli::tui::app::supports_temporary_provider_launch(&app.app_type) {
                 keys.push(("o", texts::tui_key_launch_temp()));
             }
             keys.push(("c", texts::tui_key_stream_check()));
@@ -325,6 +322,7 @@ mod tests {
         all
     }
 
+    #[cfg(unix)]
     #[test]
     fn claude_provider_list_key_bar_shows_launch_temp_hint() {
         let _lock = super::super::tests::lock_env();
@@ -343,6 +341,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn codex_provider_list_key_bar_shows_launch_temp_hint() {
         let _lock = super::super::tests::lock_env();
@@ -361,6 +360,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn claude_provider_detail_key_bar_shows_launch_temp_hint() {
         let _lock = super::super::tests::lock_env();
@@ -381,6 +381,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn codex_provider_detail_key_bar_shows_launch_temp_hint() {
         let _lock = super::super::tests::lock_env();

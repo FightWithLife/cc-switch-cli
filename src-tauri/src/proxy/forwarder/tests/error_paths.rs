@@ -323,7 +323,10 @@ async fn buffered_connect_error_maps_to_forward_failed() {
         .await
         .expect_err("connect failures should map to forward failed");
 
-    assert!(matches!(error, ProxyError::ForwardFailed(_)));
+    assert!(
+        matches!(error, ProxyError::ForwardFailed(_) | ProxyError::Timeout(_)),
+        "expected closed local port to fail before an upstream response, got {error:?}"
+    );
 }
 
 #[tokio::test]

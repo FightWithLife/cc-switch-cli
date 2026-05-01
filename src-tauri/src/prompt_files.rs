@@ -30,7 +30,7 @@ pub fn prompt_file_path(app: &AppType) -> Result<PathBuf, AppError> {
 }
 
 fn default_openclaw_dir() -> PathBuf {
-    dirs::home_dir()
+    crate::config::home_dir()
         .map(|home| home.join(".openclaw"))
         .unwrap_or_else(|| PathBuf::from(".openclaw"))
 }

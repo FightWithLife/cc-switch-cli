@@ -163,35 +163,80 @@ fn populate_opencode_form(form: &mut ProviderAddFormState, provider: &Provider) 
             form.opencode_base_url.set(base_url);
         }
     }
+
+    // 读取 currentModel（位于 settingsConfig.currentModel）
+    let current_model = provider
+        .settings_config
+        .get("currentModel")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+
+    // 加载所有 models 到 opencode_models 列表
     if let Some(models) = provider
         .settings_config
         .get("models")
         .and_then(|value| value.as_object())
     {
-        if let Some((model_id, model_value)) =
-            models.iter().max_by(|(id_a, model_a), (id_b, model_b)| {
-                opencode_model_rank(model_a)
-                    .cmp(&opencode_model_rank(model_b))
-                    .then_with(|| id_b.cmp(id_a))
-            })
-        {
-            form.opencode_model_original_id = Some(model_id.clone());
-            form.opencode_model_id.set(model_id);
+        let mut loaded_models = Vec::new();
+        let mut model_values: Vec<(String, &Value)> = Vec::new();
+        for (model_id, model_value) in models {
+            let mut draft = crate::provider::OpenCodeModelDraft::new(model_id.clone());
+            draft.original_model_id = Some(model_id.clone());
             if let Some(name) = model_value.get("name").and_then(|value| value.as_str()) {
-                form.opencode_model_name.set(name);
-            } else {
-                form.opencode_model_name.set(model_id);
+                draft.model_name = name.to_string();
             }
             if let Some(limit) = model_value.get("limit").and_then(|value| value.as_object()) {
-                if let Some(context) = limit.get("context").and_then(|value| value.as_u64()) {
-                    form.opencode_model_context_limit.set(context.to_string());
+                draft.input_limit = limit.get("context").and_then(|value| value.as_u64());
+                draft.output_limit = limit.get("output").and_then(|value| value.as_u64());
+            }
+            // 保留额外字段（如 options、userAgent 等）
+            if let Some(obj) = model_value.as_object() {
+                let mut extra = serde_json::Map::new();
+                for (key, value) in obj {
+                    if key != "name" && key != "limit" {
+                        extra.insert(key.clone(), value.clone());
+                    }
                 }
-                if let Some(output) = limit.get("output").and_then(|value| value.as_u64()) {
-                    form.opencode_model_output_limit.set(output.to_string());
+                if !extra.is_empty() {
+                    draft.extra = serde_json::Value::Object(extra);
                 }
             }
+            model_values.push((model_id.clone(), model_value));
+            loaded_models.push(draft);
         }
+        // 使用与原代码一致的排序逻辑：rank 降序，然后 model_id 降序
+        // 这与原代码的 max_by 逻辑一致（rank 高的排在前面）
+        loaded_models.sort_by(|a, b| {
+            let rank_a = model_values
+                .iter()
+                .find(|(id, _)| id == &a.model_id)
+                .map(|(_, v)| opencode_model_rank(v))
+                .unwrap_or(0);
+            let rank_b = model_values
+                .iter()
+                .find(|(id, _)| id == &b.model_id)
+                .map(|(_, v)| opencode_model_rank(v))
+                .unwrap_or(0);
+            rank_b
+                .cmp(&rank_a)
+                .then_with(|| b.model_id.cmp(&a.model_id))
+        });
+        form.opencode_models = loaded_models;
     }
+
+    // 设置只读摘要字段，ProviderForm 入口行和旧测试仍读取这些展示值。
+    // 优先使用 currentModel，否则使用排序后的第一个 model
+    let active_model_id =
+        current_model.or_else(|| form.opencode_models.first().map(|m| m.model_id.clone()));
+
+    if let Some(ref model_id) = active_model_id {
+        form.opencode_model_idx = form
+            .opencode_models
+            .iter()
+            .position(|m| &m.model_id == model_id)
+            .unwrap_or(0);
+    }
+    form.load_current_opencode_model_fields();
 }
 
 fn populate_openclaw_form(form: &mut ProviderAddFormState, provider: &Provider) {

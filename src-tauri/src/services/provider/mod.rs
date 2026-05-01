@@ -37,6 +37,12 @@ use common::{merge_json_values, strip_codex_common_config_from_full_text, strip_
 /// 供应商相关业务逻辑
 pub struct ProviderService;
 
+#[derive(Debug)]
+pub enum ProviderSaveOutcome<T> {
+    Saved(T),
+    DbCommittedLiveSyncFailed { result: T, error: AppError },
+}
+
 fn current_timestamp() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -47,6 +53,24 @@ fn current_timestamp() -> i64 {
 #[cfg(test)]
 fn state_from_config(config: MultiAppConfig) -> AppState {
     let db = std::sync::Arc::new(crate::Database::memory().expect("create memory database"));
+    for app_type in [
+        AppType::Claude,
+        AppType::Codex,
+        AppType::Gemini,
+        AppType::OpenCode,
+        AppType::OpenClaw,
+    ] {
+        if let Some(manager) = config.get_manager(&app_type) {
+            for provider in manager.providers.values() {
+                db.save_provider(app_type.as_str(), provider)
+                    .expect("seed provider in memory database");
+            }
+            if !manager.current.trim().is_empty() {
+                db.set_current_provider(app_type.as_str(), &manager.current)
+                    .expect("seed current provider in memory database");
+            }
+        }
+    }
     AppState {
         db: db.clone(),
         config: std::sync::RwLock::new(config),
@@ -140,6 +164,20 @@ impl ProviderService {
     where
         F: FnOnce(&mut MultiAppConfig) -> Result<(R, Option<PostCommitAction>), AppError>,
     {
+        match Self::run_transaction_with_post_commit_policy(state, false, f)? {
+            ProviderSaveOutcome::Saved(result) => Ok(result),
+            ProviderSaveOutcome::DbCommittedLiveSyncFailed { error, .. } => Err(error),
+        }
+    }
+
+    fn run_transaction_with_post_commit_policy<R, F>(
+        state: &AppState,
+        allow_post_commit_failure: bool,
+        f: F,
+    ) -> Result<ProviderSaveOutcome<R>, AppError>
+    where
+        F: FnOnce(&mut MultiAppConfig) -> Result<(R, Option<PostCommitAction>), AppError>,
+    {
         let mut guard = state.config.write().map_err(AppError::from)?;
         let original = guard.clone();
         let (result, action) = match f(&mut guard) {
@@ -164,6 +202,12 @@ impl ProviderService {
 
         if let Some(action) = action {
             if let Err(err) = Self::apply_post_commit(state, &action) {
+                if allow_post_commit_failure {
+                    return Ok(ProviderSaveOutcome::DbCommittedLiveSyncFailed {
+                        result,
+                        error: err,
+                    });
+                }
                 if let Err(rollback_err) =
                     Self::rollback_after_failure(state, original.clone(), action.backup.clone())
                 {
@@ -177,7 +221,7 @@ impl ProviderService {
             }
         }
 
-        Ok(result)
+        Ok(ProviderSaveOutcome::Saved(result))
     }
 
     fn run_transaction_preserving_current_providers<R, F>(
@@ -660,7 +704,7 @@ impl ProviderService {
         Self::build_post_commit_action_for_current_provider(
             config,
             app_type,
-            &current_provider_id,
+            current_provider_id,
             takeover_active,
         )
     }
@@ -989,6 +1033,26 @@ impl ProviderService {
 
     /// 新增供应商
     pub fn add(state: &AppState, app_type: AppType, provider: Provider) -> Result<bool, AppError> {
+        match Self::add_internal(state, app_type, provider, false)? {
+            ProviderSaveOutcome::Saved(result) => Ok(result),
+            ProviderSaveOutcome::DbCommittedLiveSyncFailed { error, .. } => Err(error),
+        }
+    }
+
+    pub fn add_allowing_live_sync_failure(
+        state: &AppState,
+        app_type: AppType,
+        provider: Provider,
+    ) -> Result<ProviderSaveOutcome<bool>, AppError> {
+        Self::add_internal(state, app_type, provider, true)
+    }
+
+    fn add_internal(
+        state: &AppState,
+        app_type: AppType,
+        provider: Provider,
+        allow_post_commit_failure: bool,
+    ) -> Result<ProviderSaveOutcome<bool>, AppError> {
         let mut provider = provider;
         // 归一化 Claude 模型键
         Self::normalize_provider_if_claude(&app_type, &mut provider);
@@ -1002,64 +1066,69 @@ impl ProviderService {
             state.db.get_current_provider(app_type.as_str())?
         };
 
-        Self::run_transaction(state, move |config| {
-            let common_config_snippet = config.common_config_snippets.get(&app_type_clone).cloned();
-            let mut provider_to_store = provider_clone.clone();
-            Self::normalize_provider_for_storage(
-                &app_type_clone,
-                &mut provider_to_store,
-                common_config_snippet.as_deref(),
-            )?;
+        Self::run_transaction_with_post_commit_policy(
+            state,
+            allow_post_commit_failure,
+            move |config| {
+                let common_config_snippet =
+                    config.common_config_snippets.get(&app_type_clone).cloned();
+                let mut provider_to_store = provider_clone.clone();
+                Self::normalize_provider_for_storage(
+                    &app_type_clone,
+                    &mut provider_to_store,
+                    common_config_snippet.as_deref(),
+                )?;
 
-            if matches!(app_type_clone, AppType::OpenClaw)
-                && provider_to_store.created_at.is_none()
-                && live::is_auto_mirrored_openclaw_snapshot(&provider_to_store)
-            {
-                provider_to_store.created_at = Some(current_timestamp());
-            }
+                if matches!(app_type_clone, AppType::OpenClaw)
+                    && provider_to_store.created_at.is_none()
+                    && live::is_auto_mirrored_openclaw_snapshot(&provider_to_store)
+                {
+                    provider_to_store.created_at = Some(current_timestamp());
+                }
 
-            config.ensure_app(&app_type_clone);
-            let manager = config
-                .get_manager_mut(&app_type_clone)
-                .ok_or_else(|| Self::app_not_found(&app_type_clone))?;
+                config.ensure_app(&app_type_clone);
+                let manager = config
+                    .get_manager_mut(&app_type_clone)
+                    .ok_or_else(|| Self::app_not_found(&app_type_clone))?;
 
-            if !app_type_clone.is_additive_mode() {
-                manager.current = stored_current_provider.clone().unwrap_or_default();
-            }
+                if !app_type_clone.is_additive_mode() {
+                    manager.current = stored_current_provider.clone().unwrap_or_default();
+                }
 
-            let was_empty = manager.providers.is_empty();
-            manager
-                .providers
-                .insert(provider_to_store.id.clone(), provider_to_store.clone());
+                let was_empty = manager.providers.is_empty();
+                manager
+                    .providers
+                    .insert(provider_to_store.id.clone(), provider_to_store.clone());
 
-            if !app_type_clone.is_additive_mode()
-                && stored_current_provider.is_none()
-                && (was_empty || manager.current.is_empty())
-            {
-                manager.current = provider_to_store.id.clone();
-            }
+                if !app_type_clone.is_additive_mode()
+                    && stored_current_provider.is_none()
+                    && (was_empty || manager.current.is_empty())
+                {
+                    manager.current = provider_to_store.id.clone();
+                }
 
-            let is_current =
-                app_type_clone.is_additive_mode() || manager.current == provider_to_store.id;
-            let action = if is_current {
-                let backup = Self::capture_live_snapshot(&app_type_clone)?;
-                Some(PostCommitAction {
-                    app_type: app_type_clone.clone(),
-                    provider: provider_to_store.clone(),
-                    backup,
-                    // Codex current-provider saves rewrite live config from the stored snapshot,
-                    // so managed MCP must be synced back after the write.
-                    sync_mcp: matches!(&app_type_clone, AppType::Codex),
-                    refresh_snapshot: false,
-                    common_config_snippet,
-                    takeover_active: false,
-                })
-            } else {
-                None
-            };
+                let is_current =
+                    app_type_clone.is_additive_mode() || manager.current == provider_to_store.id;
+                let action = if is_current {
+                    let backup = Self::capture_live_snapshot(&app_type_clone)?;
+                    Some(PostCommitAction {
+                        app_type: app_type_clone.clone(),
+                        provider: provider_to_store.clone(),
+                        backup,
+                        // Codex current-provider saves rewrite live config from the stored snapshot,
+                        // so managed MCP must be synced back after the write.
+                        sync_mcp: matches!(&app_type_clone, AppType::Codex),
+                        refresh_snapshot: false,
+                        common_config_snippet,
+                        takeover_active: false,
+                    })
+                } else {
+                    None
+                };
 
-            Ok((true, action))
-        })
+                Ok((true, action))
+            },
+        )
     }
 
     /// 更新供应商
@@ -1068,6 +1137,26 @@ impl ProviderService {
         app_type: AppType,
         provider: Provider,
     ) -> Result<bool, AppError> {
+        match Self::update_internal(state, app_type, provider, false)? {
+            ProviderSaveOutcome::Saved(result) => Ok(result),
+            ProviderSaveOutcome::DbCommittedLiveSyncFailed { error, .. } => Err(error),
+        }
+    }
+
+    pub fn update_allowing_live_sync_failure(
+        state: &AppState,
+        app_type: AppType,
+        provider: Provider,
+    ) -> Result<ProviderSaveOutcome<bool>, AppError> {
+        Self::update_internal(state, app_type, provider, true)
+    }
+
+    fn update_internal(
+        state: &AppState,
+        app_type: AppType,
+        provider: Provider,
+        allow_post_commit_failure: bool,
+    ) -> Result<ProviderSaveOutcome<bool>, AppError> {
         let mut provider = provider;
         // 归一化 Claude 模型键
         Self::normalize_provider_if_claude(&app_type, &mut provider);
@@ -1084,81 +1173,86 @@ impl ProviderService {
             )
         };
 
-        Self::run_transaction(state, move |config| {
-            let common_config_snippet = config.common_config_snippets.get(&app_type_clone).cloned();
-            let manager = config
-                .get_manager_mut(&app_type_clone)
-                .ok_or_else(|| Self::app_not_found(&app_type_clone))?;
+        Self::run_transaction_with_post_commit_policy(
+            state,
+            allow_post_commit_failure,
+            move |config| {
+                let common_config_snippet =
+                    config.common_config_snippets.get(&app_type_clone).cloned();
+                let manager = config
+                    .get_manager_mut(&app_type_clone)
+                    .ok_or_else(|| Self::app_not_found(&app_type_clone))?;
 
-            if !manager.providers.contains_key(&provider_id) {
-                return Err(AppError::localized(
-                    "provider.not_found",
-                    format!("供应商不存在: {provider_id}"),
-                    format!("Provider not found: {provider_id}"),
-                ));
-            }
-
-            if !app_type_clone.is_additive_mode() {
-                manager.current = stored_current_provider.clone().unwrap_or_default();
-            }
-
-            let is_current = app_type_clone.is_additive_mode()
-                || effective_current_provider.as_deref() == Some(provider_id.as_str());
-            let mut merged = if let Some(existing) = manager.providers.get(&provider_id) {
-                let mut updated = provider_clone.clone();
-                match (existing.meta.as_ref(), updated.meta.take()) {
-                    // 前端未提供 meta，表示不修改，沿用旧值
-                    (Some(old_meta), None) => {
-                        updated.meta = Some(old_meta.clone());
-                    }
-                    (None, None) => {
-                        updated.meta = None;
-                    }
-                    // 前端提供的 meta 视为权威，直接覆盖（其中 custom_endpoints 允许是空，表示删除所有自定义端点）
-                    (_old, Some(new_meta)) => {
-                        updated.meta = Some(new_meta);
-                    }
+                if !manager.providers.contains_key(&provider_id) {
+                    return Err(AppError::localized(
+                        "provider.not_found",
+                        format!("供应商不存在: {provider_id}"),
+                        format!("Provider not found: {provider_id}"),
+                    ));
                 }
-                if matches!(app_type_clone, AppType::OpenClaw)
-                    && updated.created_at.is_none()
-                    && live::is_auto_mirrored_openclaw_snapshot(&updated)
-                {
-                    updated.created_at = Some(current_timestamp());
+
+                if !app_type_clone.is_additive_mode() {
+                    manager.current = stored_current_provider.clone().unwrap_or_default();
                 }
-                updated
-            } else {
-                provider_clone.clone()
-            };
 
-            Self::normalize_provider_for_storage(
-                &app_type_clone,
-                &mut merged,
-                common_config_snippet.as_deref(),
-            )?;
+                let is_current = app_type_clone.is_additive_mode()
+                    || effective_current_provider.as_deref() == Some(provider_id.as_str());
+                let mut merged = if let Some(existing) = manager.providers.get(&provider_id) {
+                    let mut updated = provider_clone.clone();
+                    match (existing.meta.as_ref(), updated.meta.take()) {
+                        // 前端未提供 meta，表示不修改，沿用旧值
+                        (Some(old_meta), None) => {
+                            updated.meta = Some(old_meta.clone());
+                        }
+                        (None, None) => {
+                            updated.meta = None;
+                        }
+                        // 前端提供的 meta 视为权威，直接覆盖（其中 custom_endpoints 允许是空，表示删除所有自定义端点）
+                        (_old, Some(new_meta)) => {
+                            updated.meta = Some(new_meta);
+                        }
+                    }
+                    if matches!(app_type_clone, AppType::OpenClaw)
+                        && updated.created_at.is_none()
+                        && live::is_auto_mirrored_openclaw_snapshot(&updated)
+                    {
+                        updated.created_at = Some(current_timestamp());
+                    }
+                    updated
+                } else {
+                    provider_clone.clone()
+                };
 
-            manager
-                .providers
-                .insert(provider_id.clone(), merged.clone());
+                Self::normalize_provider_for_storage(
+                    &app_type_clone,
+                    &mut merged,
+                    common_config_snippet.as_deref(),
+                )?;
 
-            let action = if is_current {
-                let backup = Self::capture_live_snapshot(&app_type_clone)?;
-                Some(PostCommitAction {
-                    app_type: app_type_clone.clone(),
-                    provider: merged,
-                    backup,
-                    // Codex current-provider saves rewrite live config from the stored snapshot,
-                    // so managed MCP must be synced back after the write.
-                    sync_mcp: matches!(&app_type_clone, AppType::Codex),
-                    refresh_snapshot: false,
-                    common_config_snippet,
-                    takeover_active: false,
-                })
-            } else {
-                None
-            };
+                manager
+                    .providers
+                    .insert(provider_id.clone(), merged.clone());
 
-            Ok((true, action))
-        })
+                let action = if is_current {
+                    let backup = Self::capture_live_snapshot(&app_type_clone)?;
+                    Some(PostCommitAction {
+                        app_type: app_type_clone.clone(),
+                        provider: merged,
+                        backup,
+                        // Codex current-provider saves rewrite live config from the stored snapshot,
+                        // so managed MCP must be synced back after the write.
+                        sync_mcp: matches!(&app_type_clone, AppType::Codex),
+                        refresh_snapshot: false,
+                        common_config_snippet,
+                        takeover_active: false,
+                    })
+                } else {
+                    None
+                };
+
+                Ok((true, action))
+            },
+        )
     }
 
     /// 导入当前 live 配置为默认供应商

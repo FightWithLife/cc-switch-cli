@@ -893,6 +893,8 @@ pub(crate) fn route_has_content_list(route: &Route) -> bool {
         route,
         Route::Providers
             | Route::ProviderDetail { .. }
+            | Route::OpenCodeModelConfigList { .. }
+            | Route::OpenCodeModelConfigDetail { .. }
             | Route::Mcp
             | Route::Prompts
             | Route::Config

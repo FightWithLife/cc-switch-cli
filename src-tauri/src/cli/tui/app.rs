@@ -20,6 +20,7 @@ use super::{data, form};
 mod app_state;
 mod content_config;
 mod content_entities;
+mod content_opencode_models;
 mod content_skills;
 mod editor_handlers;
 mod editor_state;
@@ -38,8 +39,8 @@ pub(crate) use app_state::{
 pub use editor_state::{EditorKind, EditorMode, EditorState, EditorSubmit};
 pub(crate) use helpers::*;
 pub use types::{
-    ConfirmAction, ConfirmOverlay, FilterState, Focus, LoadingKind, Overlay, TextInputState,
-    TextSubmit, TextViewAction, TextViewState, Toast, ToastKind,
+    ConfirmAction, ConfirmOverlay, FilterState, Focus, LoadingKind, OpenCodeProviderDraft, Overlay,
+    TextInputState, TextSubmit, TextViewAction, TextViewState, Toast, ToastKind,
 };
 
 const PROVIDER_NOTES_MAX_CHARS: usize = 120;

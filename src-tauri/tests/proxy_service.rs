@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(clippy::await_holding_lock)]
+
 use std::{
     net::TcpListener,
     sync::Arc,
@@ -1206,17 +1209,17 @@ async fn proxy_service_status_prefers_live_status_from_external_session() {
         ]
     });
 
+    let app = axum::Router::new().route(
+        "/status",
+        axum::routing::get({
+            let expected_status = expected_status.clone();
+            move || async move { axum::Json(expected_status) }
+        }),
+    );
     let server = tokio::spawn(async move {
-        let (mut socket, _) = listener.accept().await.expect("accept status request");
-        let response = format!(
-            "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{}",
-            expected_status.to_string().len(),
-            expected_status
-        );
-        socket
-            .write_all(response.as_bytes())
+        axum::serve(listener, app)
             .await
-            .expect("write fake status response");
+            .expect("serve fake status endpoint");
     });
 
     let db = Arc::new(Database::memory().expect("create database"));
@@ -1252,7 +1255,7 @@ async fn proxy_service_status_prefers_live_status_from_external_session() {
         "status should preserve active target details from /status"
     );
 
-    server.await.expect("fake status server should finish");
+    server.abort();
 }
 
 #[tokio::test]

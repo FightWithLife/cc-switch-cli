@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock, RwLock};
 
@@ -65,6 +67,24 @@ pub fn lock_test_mutex() -> MutexGuard<'static, ()> {
 pub fn state_from_config(config: MultiAppConfig) -> AppState {
     let _ = ensure_test_home();
     let db = Arc::new(Database::init().expect("create database"));
+    for app_type in [
+        cc_switch_lib::AppType::Claude,
+        cc_switch_lib::AppType::Codex,
+        cc_switch_lib::AppType::Gemini,
+        cc_switch_lib::AppType::OpenCode,
+        cc_switch_lib::AppType::OpenClaw,
+    ] {
+        if let Some(manager) = config.get_manager(&app_type) {
+            for provider in manager.providers.values() {
+                db.save_provider(app_type.as_str(), provider)
+                    .expect("seed provider into database");
+            }
+            if !manager.current.is_empty() {
+                db.set_current_provider(app_type.as_str(), &manager.current)
+                    .expect("seed current provider into database");
+            }
+        }
+    }
     AppState {
         db: db.clone(),
         config: RwLock::new(config),

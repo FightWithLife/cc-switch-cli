@@ -73,6 +73,17 @@ impl App {
             return Action::None;
         }
 
+        if let Some(FormState::ProviderAdd(provider)) = self.form.as_ref() {
+            if provider.app_type == AppType::OpenCode {
+                if let Some(FormState::ProviderAdd(provider)) = self.form.as_mut() {
+                    if let Err(err) = provider.validate_opencode_for_save() {
+                        self.push_toast(err, ToastKind::Error);
+                        return Action::None;
+                    }
+                }
+            }
+        }
+
         let Some(FormState::ProviderAdd(provider)) = self.form.as_ref() else {
             return Action::None;
         };
@@ -91,10 +102,7 @@ impl App {
     }
 
     fn handle_provider_fields_key(&mut self, key: KeyEvent, data: &UiData) -> Option<Action> {
-        let (fields, selected, editing) = match self.prepare_provider_field_selection() {
-            Some(state) => state,
-            None => return None,
-        };
+        let (fields, selected, editing) = self.prepare_provider_field_selection()?;
 
         if editing {
             self.handle_provider_field_editing(selected, key, data)
@@ -309,6 +317,22 @@ impl App {
                 };
                 Action::None
             }
+            ProviderAddField::OpenCodeModelConfig => {
+                if !matches!(key.code, KeyCode::Enter | KeyCode::Char(' ')) {
+                    return Action::None;
+                }
+                let Some(FormState::ProviderAdd(provider)) = self.form.as_mut() else {
+                    return Action::None;
+                };
+                if let Err(err) = provider.sync_current_opencode_model() {
+                    self.push_toast(err, ToastKind::Error);
+                    return Action::None;
+                }
+                let provider_id = provider.id.value.trim().to_string();
+                self.provider_idx = provider.opencode_model_idx;
+                self.push_route_and_switch(Route::OpenCodeModelConfigList { provider_id });
+                Action::None
+            }
             ProviderAddField::OpenClawModels => {
                 if matches!(key.code, KeyCode::Enter) {
                     let Some(FormState::ProviderAdd(provider)) = self.form.as_ref() else {
@@ -335,9 +359,7 @@ impl App {
                 }
                 Action::None
             }
-            ProviderAddField::CodexModel
-            | ProviderAddField::GeminiModel
-            | ProviderAddField::OpenCodeModelId => {
+            ProviderAddField::CodexModel | ProviderAddField::GeminiModel => {
                 self.handle_provider_model_field_activate(selected, key)
             }
             _ => {
@@ -609,6 +631,19 @@ impl App {
                     provider.name.value.trim(),
                     &existing_ids,
                 ));
+        }
+        if changed
+            && matches!(
+                selected,
+                ProviderAddField::OpenCodeModelId
+                    | ProviderAddField::OpenCodeModelName
+                    | ProviderAddField::OpenCodeModelContextLimit
+                    | ProviderAddField::OpenCodeModelOutputLimit
+            )
+        {
+            if let Err(err) = provider.sync_current_opencode_model() {
+                self.push_toast(err, ToastKind::Error);
+            }
         }
     }
 }

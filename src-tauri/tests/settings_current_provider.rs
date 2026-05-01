@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use serial_test::serial;
 use std::ffi::OsString;
 use tempfile::TempDir;
@@ -41,7 +43,22 @@ mod config {
     use std::path::PathBuf;
 
     pub(crate) fn home_dir() -> Option<PathBuf> {
-        dirs::home_dir()
+        std::env::var_os("HOME")
+            .filter(|value| !value.is_empty())
+            .map(PathBuf::from)
+            .or_else(|| {
+                #[cfg(windows)]
+                {
+                    std::env::var_os("USERPROFILE")
+                        .filter(|value| !value.is_empty())
+                        .map(PathBuf::from)
+                }
+                #[cfg(not(windows))]
+                {
+                    None
+                }
+            })
+            .or_else(dirs::home_dir)
     }
 
     pub(crate) fn get_app_config_dir() -> PathBuf {

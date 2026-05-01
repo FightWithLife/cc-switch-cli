@@ -1,3 +1,5 @@
+#![allow(clippy::field_reassign_with_default)]
+
 use std::ffi::OsString;
 use std::fs;
 use std::path::PathBuf;
@@ -150,14 +152,14 @@ fn default_config_contains_openclaw_prompt_root_and_manager() {
 fn update_settings_persists_openclaw_override_dir() {
     let _guard = lock_test_mutex();
     reset_test_fs();
-    let home = ensure_test_home();
+    let _home = ensure_test_home();
     let _config_dir = ConfigDirEnvGuard::set(None);
 
     let mut settings = AppSettings::default();
     settings.openclaw_config_dir = Some("~/custom-openclaw".to_string());
     update_settings(settings).expect("save settings with openclaw override");
 
-    let path = home.join(".cc-switch").join("settings.json");
+    let path = get_app_config_dir().join("settings.json");
     let raw = fs::read_to_string(&path).expect("read settings.json");
     let value: serde_json::Value = serde_json::from_str(&raw).expect("parse settings.json");
     assert_eq!(

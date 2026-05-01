@@ -128,7 +128,7 @@ mod tests {
 
     use serde_json::json;
     use serial_test::serial;
-    use std::env;
+    use std::{env, ffi::OsString, path::Path};
     use tempfile::TempDir;
     use tokio::sync::RwLock;
 
@@ -137,22 +137,26 @@ mod tests {
     struct TempHome {
         #[allow(dead_code)]
         dir: TempDir,
-        original_home: Option<String>,
-        original_userprofile: Option<String>,
+        _lock: crate::test_support::TestHomeSettingsLock,
+        original_home: Option<OsString>,
+        original_userprofile: Option<OsString>,
     }
 
     impl TempHome {
         fn new() -> Self {
             let dir = TempDir::new().expect("create temp home");
-            let original_home = env::var("HOME").ok();
-            let original_userprofile = env::var("USERPROFILE").ok();
+            let lock = crate::test_support::lock_test_home_and_settings();
+            let original_home = env::var_os("HOME");
+            let original_userprofile = env::var_os("USERPROFILE");
 
             env::set_var("HOME", dir.path());
             env::set_var("USERPROFILE", dir.path());
+            crate::test_support::set_test_home_override(Some(dir.path()));
             crate::settings::reload_test_settings();
 
             Self {
                 dir,
+                _lock: lock,
                 original_home,
                 original_userprofile,
             }
@@ -171,6 +175,9 @@ mod tests {
                 None => env::remove_var("USERPROFILE"),
             }
 
+            crate::test_support::set_test_home_override(
+                self.original_home.as_deref().map(Path::new),
+            );
             crate::settings::reload_test_settings();
         }
     }

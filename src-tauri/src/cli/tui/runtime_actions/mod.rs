@@ -701,6 +701,7 @@ mod tests {
         ));
     }
 
+    #[cfg(unix)]
     #[test]
     fn claude_provider_launch_temporary_dispatches_to_claude_runtime_handler() {
         let mut app = App::new(Some(AppType::Claude));

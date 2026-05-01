@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(clippy::field_reassign_with_default)]
+
 use serde_json::json;
 use serial_test::serial;
 use std::collections::HashMap;

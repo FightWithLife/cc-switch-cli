@@ -232,8 +232,10 @@ pub(super) fn render_claude_api_format_picker_overlay(
 
 pub(super) fn render_model_fetch_picker_overlay(
     frame: &mut Frame<'_>,
+    _app: &App,
     content_area: Rect,
     theme: &theme::Theme,
+    _field: ProviderAddField,
     input: &str,
     query: &str,
     fetching: bool,

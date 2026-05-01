@@ -101,6 +101,47 @@ impl App {
                             filename: filename.clone(),
                         }
                     }
+                    ConfirmAction::OpenCodeModelDelete {
+                        provider_id,
+                        model_id,
+                    } => {
+                        if let Some(FormState::ProviderAdd(form)) = self.form.as_mut() {
+                            if let Some(index) = form
+                                .opencode_models
+                                .iter()
+                                .position(|draft| draft.model_id == *model_id)
+                            {
+                                form.opencode_model_idx = index;
+                                form.delete_current_opencode_model();
+                                form.editing = false;
+                                self.provider_idx = form.opencode_model_idx;
+                                if matches!(self.route, Route::OpenCodeModelConfigDetail { .. }) {
+                                    let _ =
+                                        self.set_route_no_history(Route::OpenCodeModelConfigList {
+                                            provider_id: provider_id.clone(),
+                                        });
+                                }
+                                self.push_toast(
+                                    format!("Deleted model `{}`", model_id),
+                                    ToastKind::Success,
+                                );
+                            }
+                        } else if let Some(draft) = self.opencode_draft.as_mut() {
+                            if let Some(removed) = draft.remove_model(model_id) {
+                                let count = draft.model_count();
+                                if count == 0 {
+                                    self.provider_idx = 0;
+                                } else {
+                                    self.provider_idx = self.provider_idx.min(count - 1);
+                                }
+                                self.push_toast(
+                                    format!("Deleted model `{}`", removed.model_id),
+                                    ToastKind::Success,
+                                );
+                            }
+                        }
+                        Action::None
+                    }
                     ConfirmAction::FormSaveBeforeClose => self.handle_form_save_shortcut(data),
                     ConfirmAction::EditorDiscard => Action::EditorDiscard,
                     ConfirmAction::EditorSaveBeforeClose => {
@@ -124,6 +165,7 @@ impl App {
                 }
                 if matches!(confirm.action, ConfirmAction::FormSaveBeforeClose) {
                     self.form = None;
+                    self.opencode_draft = None;
                 }
                 self.close_overlay();
                 Action::None

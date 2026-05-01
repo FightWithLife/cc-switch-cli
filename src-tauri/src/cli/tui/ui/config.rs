@@ -513,7 +513,7 @@ fn render_openclaw_env_section_block(
         }))
         .split(inner);
 
-    for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+    for (row, chunk) in rows.iter().zip(chunks.iter()) {
         frame.render_widget(
             Paragraph::new(row.line.clone()).wrap(Wrap { trim: false }),
             *chunk,
@@ -852,7 +852,7 @@ fn render_openclaw_tools_section_block(
         }))
         .split(inner);
 
-    for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+    for (row, chunk) in rows.iter().zip(chunks.iter()) {
         let paragraph = if row.wrap {
             Paragraph::new(row.line.clone()).wrap(Wrap { trim: false })
         } else {
@@ -1352,7 +1352,7 @@ fn render_openclaw_agents_section_block(
         }))
         .split(inner);
 
-    for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+    for (row, chunk) in rows.iter().zip(chunks.iter()) {
         let paragraph = if row.wrap {
             Paragraph::new(row.line.clone()).wrap(Wrap { trim: false })
         } else {
