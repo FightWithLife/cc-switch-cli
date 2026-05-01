@@ -12,6 +12,21 @@ pub(crate) fn home_dir() -> Option<PathBuf> {
         return Some(home);
     }
 
+    if let Some(home) = env::var_os("HOME") {
+        let path = PathBuf::from(home);
+        if !path.as_os_str().is_empty() {
+            return Some(path);
+        }
+    }
+
+    #[cfg(windows)]
+    if let Some(home) = env::var_os("USERPROFILE") {
+        let path = PathBuf::from(home);
+        if !path.as_os_str().is_empty() {
+            return Some(path);
+        }
+    }
+
     dirs::home_dir()
 }
 

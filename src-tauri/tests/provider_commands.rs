@@ -1,3 +1,5 @@
+#![allow(clippy::await_holding_lock)]
+
 use serde_json::json;
 use serial_test::serial;
 use std::collections::HashMap;

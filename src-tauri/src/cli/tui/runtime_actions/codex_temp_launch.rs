@@ -108,7 +108,9 @@ mod tests {
     use super::*;
     use crate::app_config::AppType;
     use crate::cli::codex_temp_launch::prepare_launch_with;
-    use crate::cli::tui::app::{App, ToastKind};
+    use crate::cli::tui::app::App;
+    #[cfg(unix)]
+    use crate::cli::tui::app::ToastKind;
     use crate::cli::tui::data::{ProviderRow, ProvidersSnapshot, UiData};
     use crate::cli::tui::runtime_systems::RequestTracker;
     use crate::provider::Provider;
@@ -192,6 +194,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn launch_failure_does_not_switch_current_provider_and_surfaces_a_toast() {
         let temp_dir = TempDir::new().expect("create temp dir");

@@ -1,3 +1,5 @@
+#![allow(clippy::await_holding_lock)]
+
 use std::{
     collections::VecDeque,
     env,
@@ -66,6 +68,9 @@ struct ProxyEnvGuard {
 
 impl ProxyEnvGuard {
     fn set(proxy_url: Option<&str>) -> Self {
+        #[cfg(windows)]
+        let proxy_keys = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"];
+        #[cfg(not(windows))]
         let proxy_keys = [
             "HTTP_PROXY",
             "http_proxy",
@@ -74,12 +79,14 @@ impl ProxyEnvGuard {
             "ALL_PROXY",
             "all_proxy",
         ];
+        #[cfg(windows)]
+        let bypass_keys = ["NO_PROXY"];
+        #[cfg(not(windows))]
         let bypass_keys = ["NO_PROXY", "no_proxy"];
 
         let saved = proxy_keys
             .into_iter()
             .chain(bypass_keys)
-            .into_iter()
             .map(|key| {
                 let old = env::var(key).ok();
                 if bypass_keys.contains(&key) {
@@ -150,7 +157,13 @@ fn proxy_env_guard_drop_restores_original_proxy_env_values() {
     let _test_env_guard = ProxyEnvGuard::set(None);
 
     env::set_var("HTTP_PROXY", "http://original-proxy.example:8080");
+    #[cfg(windows)]
+    env::set_var("NO_PROXY", "restore.example");
+    #[cfg(windows)]
+    env::set_var("no_proxy", "restore.example");
+    #[cfg(not(windows))]
     env::set_var("NO_PROXY", "restore-upper.example");
+    #[cfg(not(windows))]
     env::set_var("no_proxy", "restore-lower.example");
 
     {
@@ -168,10 +181,22 @@ fn proxy_env_guard_drop_restores_original_proxy_env_values() {
         env::var("HTTP_PROXY").ok().as_deref(),
         Some("http://original-proxy.example:8080")
     );
+    #[cfg(windows)]
+    assert_eq!(
+        env::var("NO_PROXY").ok().as_deref(),
+        Some("restore.example")
+    );
+    #[cfg(not(windows))]
     assert_eq!(
         env::var("NO_PROXY").ok().as_deref(),
         Some("restore-upper.example")
     );
+    #[cfg(windows)]
+    assert_eq!(
+        env::var("no_proxy").ok().as_deref(),
+        Some("restore.example")
+    );
+    #[cfg(not(windows))]
     assert_eq!(
         env::var("no_proxy").ok().as_deref(),
         Some("restore-lower.example")
@@ -418,6 +443,7 @@ async fn proxy_claude_successful_failover_syncs_current_provider_and_status() {
     let _guard = lock_test_mutex();
     reset_test_fs();
     let _home = ensure_test_home();
+    let _env_guard = ProxyEnvGuard::set(None);
 
     let upstream_state = UpstreamState::default();
     let upstream_listener = bind_test_listener().await;
@@ -882,6 +908,7 @@ async fn claude_requests_strip_private_params_before_forwarding_upstream() {
 #[tokio::test]
 #[serial]
 async fn claude_buffered_rectifier_runtime_disabled_flags_do_not_retry_same_provider() {
+    let _env_guard = ProxyEnvGuard::set(None);
     let cases = [
         (
             "enabled_false",

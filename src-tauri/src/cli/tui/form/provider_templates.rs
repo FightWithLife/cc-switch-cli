@@ -1,4 +1,5 @@
 use crate::app_config::AppType;
+use crate::provider::OpenCodeModelDraft;
 use serde_json::json;
 
 use super::{ClaudeApiFormat, CodexWireApi, FormMode, GeminiAuthType, ProviderAddFormState};
@@ -370,6 +371,20 @@ impl ProviderAddFormState {
                     self.opencode_model_context_limit.set("");
                     self.opencode_model_output_limit.set("");
                     self.opencode_model_original_id = Some("claude-opus-4.6".to_string());
+                    self.opencode_models = vec![
+                        OpenCodeModelDraft {
+                            model_id: "claude-opus-4.6".to_string(),
+                            model_name: "Claude Opus 4.6".to_string(),
+                            original_model_id: Some("claude-opus-4.6".to_string()),
+                            ..OpenCodeModelDraft::new("claude-opus-4.6".to_string())
+                        },
+                        OpenCodeModelDraft {
+                            model_id: "claude-sonnet-4.6".to_string(),
+                            model_name: "Claude Sonnet 4.6".to_string(),
+                            original_model_id: Some("claude-sonnet-4.6".to_string()),
+                            ..OpenCodeModelDraft::new("claude-sonnet-4.6".to_string())
+                        },
+                    ];
                 }
             }
             AppType::OpenClaw => {

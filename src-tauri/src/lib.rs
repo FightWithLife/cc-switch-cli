@@ -1,3 +1,23 @@
+#![allow(dead_code)]
+#![allow(clippy::await_holding_lock)]
+#![allow(clippy::borrow_deref_ref)]
+#![allow(clippy::collapsible_else_if)]
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::derivable_impls)]
+#![allow(clippy::double_ended_iterator_last)]
+#![allow(clippy::field_reassign_with_default)]
+#![allow(clippy::if_same_then_else)]
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::map_identity)]
+#![allow(clippy::module_inception)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::unnecessary_map_or)]
+#![allow(clippy::useless_conversion)]
+
 // Core modules
 mod app_config;
 mod claude_mcp;

@@ -50,10 +50,10 @@ fn run(cli: Cli) -> Result<(), AppError> {
 }
 
 fn command_requires_startup_state(command: &Option<Commands>) -> bool {
-    match command {
-        Some(Commands::Completions { .. }) | Some(Commands::Update(_)) => false,
-        _ => true,
-    }
+    !matches!(
+        command,
+        Some(Commands::Completions { .. }) | Some(Commands::Update(_))
+    )
 }
 
 fn initialize_startup_state_if_needed(command: &Option<Commands>) -> Result<(), AppError> {

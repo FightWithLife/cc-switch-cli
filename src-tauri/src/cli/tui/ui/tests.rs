@@ -61,6 +61,56 @@ fn provider_form_shows_full_api_key_in_table_value() {
 }
 
 #[test]
+fn opencode_model_config_summary_can_use_draft_count() {
+    let mut form = crate::cli::tui::form::ProviderAddFormState::new(AppType::OpenCode);
+    form.opencode_models
+        .push(crate::provider::OpenCodeModelDraft::new(
+            "stale".to_string(),
+        ));
+
+    let (_label, value) = super::provider_field_label_and_value_with_opencode_count(
+        &form,
+        crate::cli::tui::form::ProviderAddField::OpenCodeModelConfig,
+        Some(2),
+    );
+
+    assert_eq!(value, "2 models");
+}
+
+#[test]
+fn opencode_model_list_route_renders_even_while_provider_form_is_open() {
+    let _lock = lock_env();
+    let _no_color = EnvGuard::remove("NO_COLOR");
+
+    let mut app = App::new(Some(AppType::OpenCode));
+    app.route = Route::OpenCodeModelConfigList {
+        provider_id: "demo".to_string(),
+    };
+    app.focus = Focus::Content;
+
+    let mut form = crate::cli::tui::form::ProviderAddFormState::new(AppType::OpenCode);
+    form.opencode_models = vec![crate::provider::OpenCodeModelDraft {
+        model_id: "gpt-4.1".to_string(),
+        model_name: String::new(),
+        original_model_id: Some("gpt-4.1".to_string()),
+        ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+    }];
+    app.form = Some(crate::cli::tui::form::FormState::ProviderAdd(form));
+
+    let all = all_text(&render(&app, &minimal_data(&app.app_type)));
+
+    assert!(
+        all.contains(texts::tui_opencode_model_list_title().trim()),
+        "{all}"
+    );
+    assert!(all.contains("GPT-4.1") || all.contains("gpt-4.1"), "{all}");
+    assert!(
+        !all.contains(texts::tui_provider_add_title()),
+        "route-specific model list should render instead of the provider form: {all}"
+    );
+}
+
+#[test]
 fn openclaw_tui_form_masks_api_key_in_default_view() {
     let _lock = lock_env();
     let _no_color = EnvGuard::remove("NO_COLOR");
@@ -911,6 +961,8 @@ fn openclaw_agents_picker_overlay_marks_current_option_when_editing_existing_fal
 #[test]
 fn header_centers_tabs_when_room_allows() {
     let _lock = lock_env();
+    let temp = TempDir::new().expect("tempdir");
+    let _settings = SettingsEnvGuard::set_home(temp.path());
     let _no_color = EnvGuard::remove("NO_COLOR");
 
     let app = App::new(Some(AppType::Claude));
@@ -943,6 +995,8 @@ fn header_centers_tabs_when_room_allows() {
 #[test]
 fn header_keeps_title_and_right_badges_visible_without_large_gap_in_chinese() {
     let _lock = lock_env();
+    let temp = TempDir::new().expect("tempdir");
+    let _settings = SettingsEnvGuard::set_home(temp.path());
     let _lang = use_test_language(Language::Chinese);
     let _no_color = EnvGuard::remove("NO_COLOR");
 
@@ -5092,9 +5146,14 @@ fn workspace_route_render_wraps_long_summary_and_daily_memory_values_in_narrow_w
     let rendered = render_with_size(&app, &data, 76, 28);
     let content = content_text(&app, &rendered);
 
-    assert!(content.contains(long_workspace_tail), "{content}");
-    assert!(content.contains(long_memory_tail), "{content}");
-    assert!(content.contains(long_preview_tail), "{content}");
+    let normalized_content = content.replace('\\', "/");
+
+    assert!(
+        normalized_content.contains(long_workspace_tail),
+        "{content}"
+    );
+    assert!(normalized_content.contains(long_memory_tail), "{content}");
+    assert!(normalized_content.contains(long_preview_tail), "{content}");
 }
 
 #[test]

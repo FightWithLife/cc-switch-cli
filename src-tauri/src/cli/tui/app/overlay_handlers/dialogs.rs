@@ -105,8 +105,28 @@ impl App {
                         provider_id,
                         model_id,
                     } => {
-                        let _target_provider_id = provider_id;
-                        if let Some(draft) = self.opencode_draft.as_mut() {
+                        if let Some(FormState::ProviderAdd(form)) = self.form.as_mut() {
+                            if let Some(index) = form
+                                .opencode_models
+                                .iter()
+                                .position(|draft| draft.model_id == *model_id)
+                            {
+                                form.opencode_model_idx = index;
+                                form.delete_current_opencode_model();
+                                form.editing = false;
+                                self.provider_idx = form.opencode_model_idx;
+                                if matches!(self.route, Route::OpenCodeModelConfigDetail { .. }) {
+                                    let _ =
+                                        self.set_route_no_history(Route::OpenCodeModelConfigList {
+                                            provider_id: provider_id.clone(),
+                                        });
+                                }
+                                self.push_toast(
+                                    format!("Deleted model `{}`", model_id),
+                                    ToastKind::Success,
+                                );
+                            }
+                        } else if let Some(draft) = self.opencode_draft.as_mut() {
                             if let Some(removed) = draft.remove_model(model_id) {
                                 let count = draft.model_count();
                                 if count == 0 {

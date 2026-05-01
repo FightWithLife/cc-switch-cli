@@ -38,7 +38,7 @@ pub enum EditorSubmit {
     ConfigWebDavSettings,
     /// 编辑 OpenCode model 的某个字段
     OpenCodeModelFieldEdit {
-        model_idx: usize,
+        model_id: String,
         field: &'static str, // "model_name" | "model_id" | "input_limit" | "output_limit"
     },
 }

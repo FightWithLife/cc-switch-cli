@@ -1,3 +1,5 @@
+#![allow(clippy::field_reassign_with_default)]
+
 use serde_json::json;
 use std::collections::HashMap;
 

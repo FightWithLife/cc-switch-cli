@@ -272,10 +272,10 @@ fn display_path_with_tilde(path: &Path) -> String {
     let Some(home) = crate::config::home_dir() else {
         return display;
     };
-    let home = home.display().to_string();
-    if display == home {
+    if path == home {
         "~".to_string()
-    } else if let Some(suffix) = display.strip_prefix(&(home + "/")) {
+    } else if let Ok(suffix) = path.strip_prefix(&home) {
+        let suffix = suffix.display().to_string().replace('\\', "/");
         format!("~/{suffix}")
     } else {
         display
@@ -493,7 +493,7 @@ pub(super) fn model_fetch(
 
     ctx.app.overlay = Overlay::ModelFetchPicker {
         request_id,
-        field: field.clone(),
+        field,
         claude_idx,
         input: String::new(),
         query: String::new(),
@@ -1596,7 +1596,7 @@ mod tests {
 
         remove_from_config(&mut ctx, "p2".to_string())
             .expect("fallback-only default reference should be removable");
-        assert!(matches!(ctx.app.toast, Some(_)));
+        assert!(ctx.app.toast.is_some());
         assert!(!crate::openclaw_config::get_providers()
             .expect("read providers after successful remove")
             .contains_key("p2"));

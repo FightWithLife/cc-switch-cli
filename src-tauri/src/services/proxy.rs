@@ -64,16 +64,12 @@ pub struct HotSwitchOutcome {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 enum PersistedProxyRuntimeSessionKind {
     #[serde(alias = "foreground")]
+    #[default]
     Foreground,
     ManagedExternal,
-}
-
-impl Default for PersistedProxyRuntimeSessionKind {
-    fn default() -> Self {
-        Self::Foreground
-    }
 }
 
 impl PersistedProxyRuntimeSessionKind {
@@ -1726,6 +1722,7 @@ impl ProxyService {
         };
         let client = reqwest::Client::builder()
             .timeout(Duration::from_millis(500))
+            .no_proxy()
             .build();
         let Ok(client) = client else {
             return ExternalProxyStatusProbe::Unreachable;
@@ -2607,17 +2604,10 @@ base_url = "https://api.openai.com/v1"
 
     #[tokio::test]
     async fn managed_session_ready_info_rejects_mismatched_status_snapshot() {
-        let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
-            .await
-            .expect("bind fake proxy status listener");
-        let port = listener
-            .local_addr()
-            .expect("read fake proxy listener addr")
-            .port();
         let status = serde_json::json!({
             "running": true,
             "address": "127.0.0.1",
-            "port": port,
+            "port": 0,
             "active_connections": 0,
             "total_requests": 0,
             "success_requests": 0,
@@ -2631,19 +2621,24 @@ base_url = "https://api.openai.com/v1"
             "failover_count": 0,
             "managed_session_token": "other-session-token"
         });
-
+        let app = axum::Router::new().route(
+            "/status",
+            axum::routing::get({
+                let status = status.clone();
+                move || async move { axum::Json(status) }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
+            .await
+            .expect("bind fake proxy status listener");
+        let port = listener
+            .local_addr()
+            .expect("read fake proxy listener addr")
+            .port();
         let server = tokio::spawn(async move {
-            let (mut socket, _) = listener.accept().await.expect("accept status request");
-            let response = format!(
-                "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{}",
-                status.to_string().len(),
-                status
-            );
-            use tokio::io::AsyncWriteExt;
-            socket
-                .write_all(response.as_bytes())
+            axum::serve(listener, app)
                 .await
-                .expect("write fake status response");
+                .expect("serve fake status endpoint");
         });
 
         let db = Arc::new(Database::memory().expect("create database"));
@@ -2670,7 +2665,7 @@ base_url = "https://api.openai.com/v1"
             "startup should keep waiting when /status reports a different managed session token"
         );
 
-        server.await.expect("fake status server should finish");
+        server.abort();
     }
 
     #[tokio::test]

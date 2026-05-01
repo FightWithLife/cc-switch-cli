@@ -1,0 +1,2055 @@
+warning: unused import: `flate2::read::GzDecoder`
+ --> src\cli\commands\update.rs:2:5
+  |
+2 | use flate2::read::GzDecoder;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `tar::Archive`
+  --> src\cli\commands\update.rs:11:5
+   |
+11 | use tar::Archive;
+   |     ^^^^^^^^^^^^
+
+warning: struct `McpStatus` is never constructed
+  --> src\claude_mcp.rs:12:12
+   |
+12 | pub struct McpStatus {
+   |            ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `get_mcp_status` is never used
+  --> src\claude_mcp.rs:82:8
+   |
+82 | pub fn get_mcp_status() -> Result<McpStatus, AppError> {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `upsert_mcp_server` is never used
+   --> src\claude_mcp.rs:157:8
+    |
+157 | pub fn upsert_mcp_server(id: &str, spec: Value) -> Result<bool, AppError> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `delete_mcp_server` is never used
+   --> src\claude_mcp.rs:229:8
+    |
+229 | pub fn delete_mcp_server(id: &str) -> Result<bool, AppError> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `validate_command_in_path` is never used
+   --> src\claude_mcp.rs:249:8
+    |
+249 | pub fn validate_command_in_path(cmd: &str) -> Result<bool, AppError> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_managed_config` is never used
+  --> src\claude_plugin.rs:37:4
+   |
+37 | fn is_managed_config(content: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^^^
+
+warning: function `claude_config_status` is never used
+   --> src\claude_plugin.rs:118:8
+    |
+118 | pub fn claude_config_status() -> Result<(bool, PathBuf), AppError> {
+    |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_claude_config_applied` is never used
+   --> src\claude_plugin.rs:123:8
+    |
+123 | pub fn is_claude_config_applied() -> Result<bool, AppError> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `ConfigStatus` is never constructed
+   --> src\config.rs:341:12
+    |
+341 | pub struct ConfigStatus {
+    |            ^^^^^^^^^^^^
+
+warning: function `get_claude_config_status` is never used
+   --> src\config.rs:347:8
+    |
+347 | pub fn get_claude_config_status() -> ConfigStatus {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `write_packycode_settings` is never used
+   --> src\gemini_config.rs:387:8
+    |
+387 | pub fn write_packycode_settings() -> Result<(), AppError> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `McpStatus` is never constructed
+  --> src\gemini_mcp.rs:12:12
+   |
+12 | pub struct McpStatus {
+   |            ^^^^^^^^^
+
+warning: function `read_mcp_json` is never used
+  --> src\gemini_mcp.rs:42:8
+   |
+42 | pub fn read_mcp_json() -> Result<Option<String>, AppError> {
+   |        ^^^^^^^^^^^^^
+
+warning: struct `InitErrorPayload` is never constructed
+ --> src\init_status.rs:5:12
+  |
+5 | pub struct InitErrorPayload {
+  |            ^^^^^^^^^^^^^^^^
+
+warning: static `INIT_ERROR` is never used
+  --> src\init_status.rs:10:8
+   |
+10 | static INIT_ERROR: OnceLock<RwLock<Option<InitErrorPayload>>> = OnceLock::new();
+   |        ^^^^^^^^^^
+
+warning: function `cell` is never used
+  --> src\init_status.rs:12:4
+   |
+12 | fn cell() -> &'static RwLock<Option<InitErrorPayload>> {
+   |    ^^^^
+
+warning: function `set_init_error` is never used
+  --> src\init_status.rs:16:8
+   |
+16 | pub fn set_init_error(payload: InitErrorPayload) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `get_init_error` is never used
+  --> src\init_status.rs:22:8
+   |
+22 | pub fn get_init_error() -> Option<InitErrorPayload> {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `get_provider` is never used
+   --> src\openclaw_config.rs:702:8
+    |
+702 | pub fn get_provider(id: &str) -> Result<Option<Value>, AppError> {
+    |        ^^^^^^^^^^^^
+
+warning: function `get_typed_providers` is never used
+   --> src\openclaw_config.rs:783:8
+    |
+783 | pub fn get_typed_providers() -> Result<IndexMap<String, OpenClawProviderConfig>, AppError> {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_model_catalog` is never used
+   --> src\openclaw_config.rs:810:8
+    |
+810 | pub fn get_model_catalog() -> Result<Option<HashMap<String, OpenClawModelCatalogEntry>>, AppError> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `set_model_catalog` is never used
+   --> src\openclaw_config.rs:826:8
+    |
+826 | pub fn set_model_catalog(
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `get_typed_providers` is never used
+  --> src\opencode_config.rs:99:8
+   |
+99 | pub fn get_typed_providers() -> Result<IndexMap<String, OpenCodeProviderConfig>, AppError> {
+   |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_current_model` is never used
+   --> src\opencode_config.rs:123:8
+    |
+123 | pub fn get_current_model(provider_id: &str) -> Result<Option<String>, AppError> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `set_current_model` is never used
+   --> src\opencode_config.rs:135:8
+    |
+135 | pub fn set_current_model(provider_id: &str, model_id: &str) -> Result<(), AppError> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: multiple variants are never constructed
+  --> src\proxy\error.rs:12:5
+   |
+10 | pub enum ProxyError {
+   |          ---------- variants in this enum
+11 |     #[error("proxy server is already running")]
+12 |     AlreadyRunning,
+   |     ^^^^^^^^^^^^^^
+...
+15 |     NotRunning,
+   |     ^^^^^^^^^^
+...
+18 |     BindFailed(String),
+   |     ^^^^^^^^^^
+...
+21 |     StopTimeout,
+   |     ^^^^^^^^^^^
+...
+24 |     StopFailed(String),
+   |     ^^^^^^^^^^
+...
+39 |     ProviderUnhealthy(String),
+   |     ^^^^^^^^^^^^^^^^^
+...
+45 |     MaxRetriesExceeded,
+   |     ^^^^^^^^^^^^^^^^^^
+...
+63 |     InvalidRequest(String),
+   |     ^^^^^^^^^^^^^^
+...
+69 |     StreamIdleTimeout(u64),
+   |     ^^^^^^^^^^^^^^^^^
+...
+72 |     Internal(String),
+   |     ^^^^^^^^
+   |
+   = note: `ProxyError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: variant `ClientAbort` is never constructed
+   --> src\proxy\error.rs:225:5
+    |
+222 | pub enum ErrorCategory {
+    |          ------------- variant in this enum
+...
+225 |     ClientAbort,
+    |     ^^^^^^^^^^^
+    |
+    = note: `ErrorCategory` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `validate_proxy` is never used
+  --> src\proxy\http_client.rs:59:8
+   |
+59 | pub fn validate_proxy(proxy_url: Option<&str>) -> Result<(), String> {
+   |        ^^^^^^^^^^^^^^
+
+warning: method `name` is never used
+  --> src\proxy\providers\adapter.rs:10:8
+   |
+ 9 | pub trait ProviderAdapter: Send + Sync {
+   |           --------------- method in this trait
+10 |     fn name(&self) -> &'static str;
+   |        ^^^^
+
+warning: variant `AccessDenied` is never constructed
+  --> src\proxy\providers\codex_oauth_auth.rs:26:5
+   |
+22 | pub enum CodexOAuthError {
+   |          --------------- variant in this enum
+...
+26 |     AccessDenied,
+   |     ^^^^^^^^^^^^
+   |
+   = note: `CodexOAuthError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: methods `list_accounts` and `is_authenticated` are never used
+   --> src\proxy\providers\codex_oauth_auth.rs:495:18
+    |
+192 | impl CodexOAuthManager {
+    | ---------------------- methods in this implementation
+...
+495 |     pub async fn list_accounts(&self) -> Vec<ManagedAuthAccount> {
+    |                  ^^^^^^^^^^^^^
+...
+551 |     pub async fn is_authenticated(&self) -> bool {
+    |                  ^^^^^^^^^^^^^^^^
+
+warning: fields `refresh_token`, `client_id`, and `client_secret` are never read
+  --> src\proxy\providers\gemini.rs:12:9
+   |
+10 | pub struct OAuthCredentials {
+   |            ---------------- fields in this struct
+11 |     pub access_token: String,
+12 |     pub refresh_token: Option<String>,
+   |         ^^^^^^^^^^^^^
+13 |     pub client_id: Option<String>,
+   |         ^^^^^^^^^
+14 |     pub client_secret: Option<String>,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `OAuthCredentials` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated functions `list_accounts` and `get_quota` are never used
+  --> src\services\codex_oauth.rs:66:18
+   |
+18 | impl CodexOAuthService {
+   | ---------------------- associated functions in this implementation
+...
+66 |     pub async fn list_accounts() -> Vec<ManagedAuthAccount> {
+   |                  ^^^^^^^^^^^^^
+...
+86 |     pub async fn get_quota(account_id: Option<&str>) -> SubscriptionQuota {
+   |                  ^^^^^^^^^
+
+warning: struct `BackupInfo` is never constructed
+  --> src\services\env_manager.rs:15:12
+   |
+15 | pub struct BackupInfo {
+   |            ^^^^^^^^^^
+
+warning: function `delete_env_vars` is never used
+  --> src\services\env_manager.rs:22:8
+   |
+22 | pub fn delete_env_vars(conflicts: Vec<EnvConflict>) -> Result<BackupInfo, String> {
+   |        ^^^^^^^^^^^^^^^
+
+warning: function `create_backup` is never used
+  --> src\services\env_manager.rs:44:4
+   |
+44 | fn create_backup(conflicts: &[EnvConflict]) -> Result<BackupInfo, String> {
+   |    ^^^^^^^^^^^^^
+
+warning: function `get_backup_dir` is never used
+  --> src\services\env_manager.rs:70:4
+   |
+70 | fn get_backup_dir() -> Result<PathBuf, String> {
+   |    ^^^^^^^^^^^^^^
+
+warning: function `delete_single_env` is never used
+  --> src\services\env_manager.rs:76:4
+   |
+76 | fn delete_single_env(conflict: &EnvConflict) -> Result<(), String> {
+   |    ^^^^^^^^^^^^^^^^^
+
+warning: function `restore_from_backup` is never used
+   --> src\services\env_manager.rs:153:8
+    |
+153 | pub fn restore_from_backup(backup_path: String) -> Result<(), String> {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `restore_single_env` is never used
+   --> src\services\env_manager.rs:170:4
+    |
+170 | fn restore_single_env(conflict: &EnvConflict) -> Result<(), String> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: associated function `extract_credentials` is never used
+   --> src\services\provider\usage.rs:368:19
+    |
+ 12 | impl ProviderService {
+    | -------------------- associated function in this implementation
+...
+368 |     pub(super) fn extract_credentials(
+    |                   ^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `error` is never used
+  --> src\services\subscription.rs:57:19
+   |
+43 | impl SubscriptionQuota {
+   | ---------------------- associated function in this implementation
+...
+57 |     pub(crate) fn error(tool: &str, status: CredentialStatus, message: String) -> Self {
+   |                   ^^^^^
+
+warning: struct `CodexRateLimitWindow` is never constructed
+  --> src\services\subscription.rs:72:8
+   |
+72 | struct CodexRateLimitWindow {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `CodexRateLimit` is never constructed
+  --> src\services\subscription.rs:79:8
+   |
+79 | struct CodexRateLimit {
+   |        ^^^^^^^^^^^^^^
+
+warning: struct `CodexUsageResponse` is never constructed
+  --> src\services\subscription.rs:85:8
+   |
+85 | struct CodexUsageResponse {
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `now_millis` is never used
+  --> src\services\subscription.rs:89:4
+   |
+89 | fn now_millis() -> i64 {
+   |    ^^^^^^^^^^
+
+warning: function `window_seconds_to_tier_name` is never used
+  --> src\services\subscription.rs:96:4
+   |
+96 | fn window_seconds_to_tier_name(secs: i64) -> String {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `unix_ts_to_iso` is never used
+   --> src\services\subscription.rs:111:4
+    |
+111 | fn unix_ts_to_iso(ts: i64) -> Option<String> {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `query_codex_quota` is never used
+   --> src\services\subscription.rs:115:21
+    |
+115 | pub(crate) async fn query_codex_quota(
+    |                     ^^^^^^^^^^^^^^^^^
+
+warning: function `is_jianguoyun` is never used
+   --> src\services\webdav.rs:164:8
+    |
+164 | pub fn is_jianguoyun(base_url: &str) -> bool {
+    |        ^^^^^^^^^^^^^
+
+warning: field `executable` is never read
+  --> src\cli\claude_temp_launch.rs:12:16
+   |
+11 | pub(crate) struct PreparedClaudeLaunch {
+   |                   -------------------- field in this struct
+12 |     pub(crate) executable: PathBuf,
+   |                ^^^^^^^^^^
+   |
+   = note: `PreparedClaudeLaunch` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `executable` is never read
+  --> src\cli\codex_temp_launch.rs:13:16
+   |
+12 | pub(crate) struct PreparedCodexLaunch {
+   |                   ------------------- field in this struct
+13 |     pub(crate) executable: PathBuf,
+   |                ^^^^^^^^^^
+   |
+   = note: `PreparedCodexLaunch` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `notes` and `pub_date` are never read
+  --> src\cli\commands\update.rs:48:5
+   |
+45 | struct UpdateManifest {
+   |        -------------- fields in this struct
+...
+48 |     notes: Option<String>,
+   |     ^^^^^
+49 |     #[serde(default)]
+50 |     pub_date: Option<String>,
+   |     ^^^^^^^^
+   |
+   = note: `UpdateManifest` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `resolve_target_tag` is never used
+   --> src\cli\commands\update.rs:654:10
+    |
+654 | async fn resolve_target_tag(
+    |          ^^^^^^^^^^^^^^^^^^
+
+warning: function `remove_file_if_present` is never used
+    --> src\cli\commands\update.rs:1222:4
+     |
+1222 | fn remove_file_if_present(path: &Path) -> Result<(), AppError> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `map_update_permission_error` is never used
+    --> src\cli\commands\update.rs:1230:4
+     |
+1230 | fn map_update_permission_error(target: &Path, err: std::io::Error) -> AppError {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variants `ReloadData`, `SkillsScanUnmanaged`, `SetProxyEnabled`, and `SetProxyTakeover` are never constructed
+   --> src\cli\tui\app\app_state.rs:6:5
+    |
+  4 | pub enum Action {
+    |          ------ variants in this enum
+  5 |     None,
+  6 |     ReloadData,
+    |     ^^^^^^^^^^
+...
+ 48 |     SkillsScanUnmanaged,
+    |     ^^^^^^^^^^^^^^^^^^^
+...
+169 |     SetProxyEnabled {
+    |     ^^^^^^^^^^^^^^^
+...
+181 |     SetProxyTakeover {
+    |     ^^^^^^^^^^^^^^^^
+    |
+    = note: `Action` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `Proxy` is never constructed
+   --> src\cli\tui\app\app_state.rs:210:5
+    |
+201 | pub enum ConfigItem {
+    |          ---------- variant in this enum
+...
+210 |     Proxy,
+    |     ^^^^^
+    |
+    = note: `ConfigItem` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `language_idx` is never read
+   --> src\cli\tui\app\app_state.rs:468:9
+    |
+420 | pub struct App {
+    |            --- field in this struct
+...
+468 |     pub language_idx: usize,
+    |         ^^^^^^^^^^^^
+    |
+    = note: `App` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `preview` is never used
+   --> src\cli\tui\app\helpers.rs:883:19
+    |
+875 | impl<'a> OpenClawDailyMemoryListItem<'a> {
+    | ---------------------------------------- method in this implementation
+...
+883 |     pub(crate) fn preview(&self) -> &str {
+    |                   ^^^^^^^
+
+warning: function `openclaw_workspace_rows` is never used
+    --> src\cli\tui\app\helpers.rs:1080:15
+     |
+1080 | pub(crate) fn openclaw_workspace_rows() -> Vec<OpenClawWorkspaceRow> {
+     |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `sync_method_picker_index` is never used
+    --> src\cli\tui\app\helpers.rs:1167:15
+     |
+1167 | pub(crate) fn sync_method_picker_index(method: SyncMethod) -> usize {
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `EditorDiscard` is never constructed
+  --> src\cli\tui\app\types.rs:99:5
+   |
+58 | pub enum ConfirmAction {
+   |          ------------- variant in this enum
+...
+99 |     EditorDiscard,
+   |     ^^^^^^^^^^^^^
+   |
+   = note: `ConfirmAction` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `SkillsInstallSpec` is never constructed
+   --> src\cli\tui\app\types.rs:119:5
+    |
+112 | pub enum TextSubmit {
+    |          ---------- variant in this enum
+...
+119 |     SkillsInstallSpec,
+    |     ^^^^^^^^^^^^^^^^^
+    |
+    = note: `TextSubmit` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `app_type` and `enabled` are never read
+   --> src\cli\tui\app\types.rs:153:27
+    |
+153 |     ProxyToggleTakeover { app_type: AppType, enabled: bool },
+    |     -------------------   ^^^^^^^^           ^^^^^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `TextViewAction` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `key_label` is never used
+   --> src\cli\tui\app\types.rs:157:12
+    |
+156 | impl TextViewAction {
+    | ------------------- method in this implementation
+157 |     pub fn key_label(&self) -> &'static str {
+    |            ^^^^^^^^^
+
+warning: variant `SkillsSyncMethodPicker` is never constructed
+   --> src\cli\tui\app\types.rs:580:5
+    |
+511 | pub enum Overlay {
+    |          ------- variant in this enum
+...
+580 |     SkillsSyncMethodPicker {
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `Overlay` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `openclaw_config_dir` is never read
+  --> src\cli\tui\data.rs:69:9
+   |
+61 | pub struct ConfigSnapshot {
+   |            -------------- field in this struct
+...
+69 |     pub openclaw_config_dir: Option<PathBuf>,
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ConfigSnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `provider_name` is never read
+  --> src\cli\tui\data.rs:93:9
+   |
+92 | pub struct ProxyTargetSnapshot {
+   |            ------------------- field in this struct
+93 |     pub provider_name: String,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `ProxyTargetSnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `default_cost_multiplier`, `total_requests`, `success_rate`, `current_provider`, and `current_app_target` are never read
+   --> src\cli\tui\data.rs:104:9
+    |
+ 97 | pub struct ProxySnapshot {
+    |            ------------- fields in this struct
+...
+104 |     pub default_cost_multiplier: Option<String>,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^
+...
+110 |     pub total_requests: u64,
+    |         ^^^^^^^^^^^^^^
+...
+113 |     pub success_rate: Option<f32>,
+    |         ^^^^^^^^^^^^
+114 |     pub current_provider: Option<String>,
+    |         ^^^^^^^^^^^^^^^^
+115 |     pub last_error: Option<String>,
+116 |     pub current_app_target: Option<ProxyTargetSnapshot>,
+    |         ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ProxySnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `toggle` is never used
+   --> src\cli\tui\form.rs:201:12
+    |
+200 | impl CodexPreviewSection {
+    | ------------------------ method in this implementation
+201 |     pub fn toggle(self) -> Self {
+    |            ^^^^^^
+
+warning: multiple variants are never constructed
+   --> src\cli\tui\form.rs:233:5
+    |
+222 | pub enum ProviderAddField {
+    |          ---------------- variants in this enum
+...
+233 |     CodexWireApi,
+    |     ^^^^^^^^^^^^
+234 |     CodexRequiresOpenaiAuth,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+235 |     CodexEnvKey,
+    |     ^^^^^^^^^^^
+...
+247 |     OpenCodeModelId,
+    |     ^^^^^^^^^^^^^^^
+248 |     OpenCodeModelName,
+    |     ^^^^^^^^^^^^^^^^^
+249 |     OpenCodeModelContextLimit,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+250 |     OpenCodeModelOutputLimit,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ProviderAddField` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `text_view` is never used
+   --> src\cli\tui\runtime_actions\helpers.rs:188:15
+    |
+188 | pub(super) fn text_view(title: String, content: String) -> Overlay {
+    |               ^^^^^^^^^
+
+warning: function `apply_webdav_jianguoyun_quick_setup` is never used
+   --> src\cli\tui\runtime_systems\handlers.rs:429:15
+    |
+429 | pub(crate) fn apply_webdav_jianguoyun_quick_setup<FSave, FCheck>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `message` is never read
+  --> src\cli\tui\runtime_systems\types.rs:95:9
+   |
+94 |     V1Migrated {
+   |     ---------- field in this variant
+95 |         message: String,
+   |         ^^^^^^^
+   |
+   = note: `WebDavDone` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `compact_two_column_lines` is never used
+   --> src\cli\tui\ui\config.rs:395:4
+    |
+395 | fn compact_two_column_lines(lines: &[String], total_width: u16) -> Option<Vec<String>> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `provider_field_label_and_value` is never used
+   --> src\cli\tui\ui\forms\provider.rs:299:15
+    |
+299 | pub(crate) fn provider_field_label_and_value(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: derefed type is same as origin
+   --> src\openclaw_config.rs:225:26
+    |
+225 |             .find(|pair| json5_key_name(&pair.key).as_deref() == Some(key))
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `json5_key_name(&pair.key)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_option_as_deref
+    = note: `#[warn(clippy::needless_option_as_deref)]` on by default
+
+warning: this function has too many arguments (9/7)
+   --> src\proxy\forwarder\request_builder.rs:90:1
+    |
+ 90 | / async fn build_request(
+ 91 | |     client: &reqwest::Client,
+ 92 | |     adapter: &dyn ProviderAdapter,
+ 93 | |     provider: &Provider,
+...   |
+ 99 | |     is_claude_request: bool,
+100 | | ) -> Result<reqwest::RequestBuilder, ProxyError> {
+    | |________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:117:5
+    |
+117 | /     pub async fn forward_response(
+118 | |         &self,
+119 | |         app_type: &AppType,
+120 | |         endpoint: &str,
+...   |
+125 | |         rectifier_config: RectifierConfig,
+126 | |     ) -> Result<ForwardedResponse<StreamingResponse>, ProxyError> {
+    | |_________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:140:5
+    |
+140 | /     pub async fn forward_response_detailed(
+141 | |         &self,
+142 | |         app_type: &AppType,
+143 | |         endpoint: &str,
+...   |
+148 | |         rectifier_config: RectifierConfig,
+149 | |     ) -> Result<ForwardedResponse<StreamingResponse>, ForwardFailure> {
+    | |_____________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:354:5
+    |
+354 | /     pub async fn forward_buffered_response(
+355 | |         &self,
+356 | |         app_type: &AppType,
+357 | |         endpoint: &str,
+...   |
+362 | |         rectifier_config: RectifierConfig,
+363 | |     ) -> Result<ForwardedResponse<BufferedResponse>, ProxyError> {
+    | |________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:377:5
+    |
+377 | /     pub async fn forward_buffered_response_detailed(
+378 | |         &self,
+379 | |         app_type: &AppType,
+380 | |         endpoint: &str,
+...   |
+385 | |         rectifier_config: RectifierConfig,
+386 | |     ) -> Result<ForwardedResponse<BufferedResponse>, ForwardFailure> {
+    | |____________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:591:5
+    |
+591 | /     async fn send_streaming_request(
+592 | |         &self,
+593 | |         app_type: &AppType,
+594 | |         provider: &Provider,
+...   |
+599 | |         rectifier_config: &RectifierConfig,
+600 | |     ) -> Result<StreamingAttemptOutcome, StreamingRequestError> {
+    | |_______________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: unnecessary map of the identity function
+   --> src\proxy\forwarder.rs:650:45
+    |
+650 |   ...                   .map_err(|_| ())
+    |  _______________________________________^
+651 | | ...                   .map(|result| result)
+    | |___________________________________________^ help: remove the call to `map`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#map_identity
+    = note: `#[warn(clippy::map_identity)]` on by default
+
+warning: this function has too many arguments (8/7)
+   --> src\proxy\forwarder.rs:740:5
+    |
+740 | /     async fn send_buffered_request(
+741 | |         &self,
+742 | |         app_type: &AppType,
+743 | |         provider: &Provider,
+...   |
+748 | |         rectifier_config: &RectifierConfig,
+749 | |     ) -> Result<BufferedAttemptOutcome, BufferedRequestError> {
+    | |_____________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: unnecessary map of the identity function
+   --> src\proxy\forwarder.rs:799:45
+    |
+799 |   ...                   .map_err(|_| ())
+    |  _______________________________________^
+800 | | ...                   .map(|result| result)
+    | |___________________________________________^ help: remove the call to `map`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#map_identity
+
+warning: this `else { if .. }` block can be collapsed
+  --> src\proxy\provider_router.rs:69:16
+   |
+69 |           } else {
+   |  ________________^
+70 | |             if let Some(current) = self.current_provider(app_type)? {
+71 | |                 total_providers = 1;
+72 | |                 result.push(current);
+73 | |             }
+74 | |         }
+   | |_________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+   = note: `#[warn(clippy::collapsible_else_if)]` on by default
+help: collapse nested if block
+   |
+69 ~         } else if let Some(current) = self.current_provider(app_type)? {
+70 +             total_providers = 1;
+71 +             result.push(current);
+72 +         }
+   |
+
+warning: very complex type used. Consider factoring parts into `type` definitions
+  --> src\services\codex_oauth.rs:12:19
+   |
+12 |     static STORE: OnceLock<RwLock<Option<(PathBuf, Arc<CodexOAuthManager>)>>> = OnceLock::new();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#type_complexity
+   = note: `#[warn(clippy::type_complexity)]` on by default
+
+warning: this `if` statement can be collapsed
+   --> src\services\provider\live.rs:223:17
+    |
+223 | /                 if is_auto_mirrored_openclaw_snapshot(existing) {
+224 | |                     if existing.name != id {
+225 | |                         existing.name = id.clone();
+226 | |                         provider_changed = true;
+227 | |                     }
+228 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_if
+    = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+    |
+223 ~                 if is_auto_mirrored_openclaw_snapshot(existing)
+224 ~                     && existing.name != id {
+225 |                         existing.name = id.clone();
+226 |                         provider_changed = true;
+227 ~                     }
+    |
+
+warning: this `map_or` can be simplified
+   --> src\services\provider\live.rs:260:12
+    |
+260 |           && provider
+    |  ____________^
+261 | |             .meta
+262 | |             .as_ref()
+263 | |             .map_or(true, is_default_openclaw_common_config_marker)
+    | |___________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_map_or
+    = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use is_none_or instead
+    |
+263 -             .map_or(true, is_default_openclaw_common_config_marker)
+263 +             .is_none_or(is_default_openclaw_common_config_marker)
+    |
+
+warning: this expression creates a reference which is immediately dereferenced by the compiler
+   --> src\services\provider\usage.rs:121:56
+    |
+121 |                 Self::resolve_usage_script_credentials(&provider, &app_type, usage_script)?;
+    |                                                        ^^^^^^^^^ help: change this to: `provider`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_borrow
+    = note: `#[warn(clippy::needless_borrow)]` on by default
+
+warning: this expression creates a reference which is immediately dereferenced by the compiler
+   --> src\services\provider\mod.rs:707:13
+    |
+707 |             &current_provider_id,
+    |             ^^^^^^^^^^^^^^^^^^^^ help: change this to: `current_provider_id`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_borrow
+
+warning: this `impl` can be derived
+  --> src\services\proxy.rs:73:1
+   |
+73 | / impl Default for PersistedProxyRuntimeSessionKind {
+74 | |     fn default() -> Self {
+75 | |         Self::Foreground
+76 | |     }
+77 | | }
+   | |_^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#derivable_impls
+   = note: `#[warn(clippy::derivable_impls)]` on by default
+help: replace the manual implementation with a derive attribute and mark the default variant
+   |
+67 + #[derive(Default)]
+68 ~ enum PersistedProxyRuntimeSessionKind {
+69 |     #[serde(alias = "foreground")]
+70 ~     #[default]
+71 ~     Foreground,
+   |
+
+warning: large size difference between variants
+   --> src\services\proxy.rs:111:1
+    |
+111 | / enum ExternalProxyStatusProbe {
+112 | |     Matched(ProxyStatus),
+    | |     -------------------- the largest variant contains at least 240 bytes
+113 | |     Mismatched,
+    | |     ---------- the second-largest variant carries no data at all
+114 | |     Unreachable,
+115 | | }
+    | |_^ the entire enum is at least 240 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#large_enum_variant
+    = note: `#[warn(clippy::large_enum_variant)]` on by default
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+112 -     Matched(ProxyStatus),
+112 +     Matched(Box<ProxyStatus>),
+    |
+
+warning: useless conversion to the same type: `impl std::iter::Iterator<Item = app_config::AppType>`
+   --> src\services\skill.rs:544:52
+    |
+544 |                   let mut candidates: Vec<AppType> = Self::supported_skill_apps()
+    |  ____________________________________________________^
+545 | |                     .into_iter()
+    | |________________________________^ help: consider removing `.into_iter()`: `Self::supported_skill_apps()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#useless_conversion
+    = note: `#[warn(clippy::useless_conversion)]` on by default
+
+warning: writing `&PathBuf` instead of `&Path` involves a new object where a slice will do
+   --> src\cli\commands\config.rs:133:24
+    |
+133 | fn export_config(file: &PathBuf) -> Result<(), AppError> {
+    |                        ^^^^^^^^ help: change this to: `&Path`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#ptr_arg
+    = note: `#[warn(clippy::ptr_arg)]` on by default
+
+warning: writing `&PathBuf` instead of `&Path` involves a new object where a slice will do
+   --> src\cli\commands\config.rs:171:24
+    |
+171 | fn import_config(file: &PathBuf) -> Result<(), AppError> {
+    |                        ^^^^^^^^ help: change this to: `&Path`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#ptr_arg
+
+warning: this `if` has identical blocks
+   --> src\cli\commands\provider_input.rs:176:41
+    |
+176 |               } else if c.is_whitespace() {
+    |  _________________________________________^
+177 | |                 '-'
+178 | |             } else {
+    | |_____________^
+    |
+note: same as this
+   --> src\cli\commands\provider_input.rs:178:20
+    |
+178 |               } else {
+    |  ____________________^
+179 | |                 '-'
+180 | |             }
+    | |_____________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+    = note: `#[warn(clippy::if_same_then_else)]` on by default
+
+warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+   --> src\cli\commands\update.rs:534:30
+    |
+534 |         .and_then(|segments| segments.last())
+    |                              ^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#double_ended_iterator_last
+    = note: `#[warn(clippy::double_ended_iterator_last)]` on by default
+help: try
+    |
+534 -         .and_then(|segments| segments.last())
+534 +         .and_then(|mut segments| segments.next_back())
+    |
+
+warning: unneeded `return` statement
+    --> src\cli\commands\update.rs:1186:9
+     |
+1186 | /         return self_replace::self_replace(new_binary_path).map_err(|e| {
+1187 | |             AppError::Message(format!(
+1188 | |                 "Failed to replace running executable on Windows: {e}"
+1189 | |             ))
+1190 | |         });
+     | |__________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_return
+     = note: `#[warn(clippy::needless_return)]` on by default
+help: remove `return`
+     |
+1186 ~         self_replace::self_replace(new_binary_path).map_err(|e| {
+1187 +             AppError::Message(format!(
+1188 +                 "Failed to replace running executable on Windows: {e}"
+1189 +             ))
+1190 ~         })
+     |
+
+warning: this `if` has identical blocks
+   --> src\cli\i18n.rs:305:25
+    |
+305 |           if is_chinese() {
+    |  _________________________^
+306 | |             "App"
+307 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\i18n.rs:307:16
+    |
+307 |           } else {
+    |  ________________^
+308 | |             "App"
+309 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+   --> src\cli\i18n.rs:377:25
+    |
+377 |           if is_chinese() {
+    |  _________________________^
+378 | |             "─".repeat(width)
+379 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\i18n.rs:379:16
+    |
+379 |           } else {
+    |  ________________^
+380 | |             "─".repeat(width)
+381 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+   --> src\cli\i18n.rs:385:25
+    |
+385 |           if is_chinese() {
+    |  _________________________^
+386 | |             "═".repeat(width)
+387 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\i18n.rs:387:16
+    |
+387 |           } else {
+    |  ________________^
+388 | |             "═".repeat(width)
+389 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+   --> src\cli\i18n.rs:416:25
+    |
+416 |           if is_chinese() {
+    |  _________________________^
+417 | |             format!("{ms} ms")
+418 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\i18n.rs:418:16
+    |
+418 |           } else {
+    |  ________________^
+419 | |             format!("{ms} ms")
+420 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+   --> src\cli\i18n.rs:739:25
+    |
+739 |           if is_chinese() {
+    |  _________________________^
+740 | |             "Session Context"
+741 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\i18n.rs:741:16
+    |
+741 |           } else {
+    |  ________________^
+742 | |             "Session Context"
+743 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:1279:25
+     |
+1279 |           if is_chinese() {
+     |  _________________________^
+1280 | |             "README"
+1281 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:1281:16
+     |
+1281 |           } else {
+     |  ________________^
+1282 | |             "README"
+1283 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:1295:25
+     |
+1295 |           if is_chinese() {
+     |  _________________________^
+1296 | |             "API Key"
+1297 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:1297:16
+     |
+1297 |           } else {
+     |  ________________^
+1298 | |             "API Key"
+1299 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:1828:25
+     |
+1828 |           if is_chinese() {
+     |  _________________________^
+1829 | |             "auth.json (JSON) *"
+1830 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:1830:16
+     |
+1830 |           } else {
+     |  ________________^
+1831 | |             "auth.json (JSON) *"
+1832 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:1836:25
+     |
+1836 |           if is_chinese() {
+     |  _________________________^
+1837 | |             "config.toml (TOML)"
+1838 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:1838:16
+     |
+1838 |           } else {
+     |  ________________^
+1839 | |             "config.toml (TOML)"
+1840 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:1946:16
+     |
+1946 |           } else {
+     |  ________________^
+1947 | |             if fetching {
+1948 | |                 "Select Model (Fetching...)".to_string()
+1949 | |             } else {
+...    |
+1952 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+1946 ~         } else if fetching {
+1947 +             "Select Model (Fetching...)".to_string()
+1948 +         } else {
+1949 +             "Select Model".to_string()
+1950 +         }
+     |
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:2566:25
+     |
+2566 |           if is_chinese() {
+     |  _________________________^
+2567 | |             format!("API URL:  {}", url)
+2568 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:2568:16
+     |
+2568 |           } else {
+     |  ________________^
+2569 | |             format!("API URL:  {}", url)
+2570 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:3291:25
+     |
+3291 |           if is_chinese() {
+     |  _________________________^
+3292 | |             "Daily Memory"
+3293 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:3293:16
+     |
+3293 |           } else {
+     |  ________________^
+3294 | |             "Daily Memory"
+3295 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:3901:25
+     |
+3901 |           if is_chinese() {
+     |  _________________________^
+3902 | |             "Daily Memory"
+3903 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:3903:16
+     |
+3903 |           } else {
+     |  ________________^
+3904 | |             "Daily Memory"
+3905 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:4986:16
+     |
+4986 |           } else {
+     |  ________________^
+4987 | |             if enabled {
+4988 | |                 "Repository enabled.".to_string()
+4989 | |             } else {
+...    |
+4992 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+4986 ~         } else if enabled {
+4987 +             "Repository enabled.".to_string()
+4988 +         } else {
+4989 +             "Repository disabled.".to_string()
+4990 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:5002:16
+     |
+5002 |           } else {
+     |  ________________^
+5003 | |             if enabled {
+5004 | |                 "Claude Code onboarding confirmation will be skipped.".to_string()
+5005 | |             } else {
+...    |
+5008 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+5002 ~         } else if enabled {
+5003 +             "Claude Code onboarding confirmation will be skipped.".to_string()
+5004 +         } else {
+5005 +             "Claude Code onboarding confirmation restored.".to_string()
+5006 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:5018:16
+     |
+5018 |           } else {
+     |  ________________^
+5019 | |             if enabled {
+5020 | |                 "Claude Code for VSCode integration enabled.".to_string()
+5021 | |             } else {
+...    |
+5024 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+5018 ~         } else if enabled {
+5019 +             "Claude Code for VSCode integration enabled.".to_string()
+5020 +         } else {
+5021 +             "Claude Code for VSCode integration disabled.".to_string()
+5022 +         }
+     |
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:6735:25
+     |
+6735 |           if is_chinese() {
+     |  _________________________^
+6736 | |             "API Key"
+6737 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:6737:16
+     |
+6737 |           } else {
+     |  ________________^
+6738 | |             "API Key"
+6739 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:6743:25
+     |
+6743 |           if is_chinese() {
+     |  _________________________^
+6744 | |             "Service Account (ADC)"
+6745 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:6745:16
+     |
+6745 |           } else {
+     |  ________________^
+6746 | |             "Service Account (ADC)"
+6747 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:6815:25
+     |
+6815 |           if is_chinese() {
+     |  _________________________^
+6816 | |             "PackyCode API Key"
+6817 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:6817:16
+     |
+6817 |           } else {
+     |  ________________^
+6818 | |             "PackyCode API Key"
+6819 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:6984:25
+     |
+6984 |           if is_chinese() {
+     |  _________________________^
+6985 | |             "ID"
+6986 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:6986:16
+     |
+6986 |           } else {
+     |  ________________^
+6987 | |             "ID"
+6988 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7048:25
+     |
+7048 |           if is_chinese() {
+     |  _________________________^
+7049 | |             "ID"
+7050 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7050:16
+     |
+7050 |           } else {
+     |  ________________^
+7051 | |             "ID"
+7052 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7125:25
+     |
+7125 |           if is_chinese() {
+     |  _________________________^
+7126 | |             "API Key"
+7127 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7127:16
+     |
+7127 |           } else {
+     |  ________________^
+7128 | |             "API Key"
+7129 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7133:25
+     |
+7133 |           if is_chinese() {
+     |  _________________________^
+7134 | |             "Base URL"
+7135 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7135:16
+     |
+7135 |           } else {
+     |  ________________^
+7136 | |             "Base URL"
+7137 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7157:25
+     |
+7157 |           if is_chinese() {
+     |  _________________________^
+7158 | |             "Haiku"
+7159 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7159:16
+     |
+7159 |           } else {
+     |  ________________^
+7160 | |             "Haiku"
+7161 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7165:25
+     |
+7165 |           if is_chinese() {
+     |  _________________________^
+7166 | |             "Sonnet"
+7167 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7167:16
+     |
+7167 |           } else {
+     |  ________________^
+7168 | |             "Sonnet"
+7169 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:7173:25
+     |
+7173 |           if is_chinese() {
+     |  _________________________^
+7174 | |             "Opus"
+7175 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:7175:16
+     |
+7175 |           } else {
+     |  ________________^
+7176 | |             "Opus"
+7177 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:7704:16
+     |
+7704 |           } else {
+     |  ________________^
+7705 | |             if enable {
+7706 | |                 format!(
+7707 | |                     "Enable skipping Claude Code onboarding confirmation?\nWrites hasCompletedOnboarding=true to {path}"
+...    |
+7714 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+7704 ~         } else if enable {
+7705 +             format!(
+7706 +                 "Enable skipping Claude Code onboarding confirmation?\nWrites hasCompletedOnboarding=true to {path}"
+7707 +             )
+7708 +         } else {
+7709 +             format!(
+7710 +                 "Disable skipping Claude Code onboarding confirmation?\nRemoves hasCompletedOnboarding from {path}"
+7711 +             )
+7712 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:7724:16
+     |
+7724 |           } else {
+     |  ________________^
+7725 | |             if enable {
+7726 | |                 "✓ Skip Claude Code onboarding confirmation enabled".to_string()
+7727 | |             } else {
+...    |
+7730 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+7724 ~         } else if enable {
+7725 ~             "✓ Skip Claude Code onboarding confirmation enabled".to_string()
+7726 +         } else {
+7727 ~             "✓ Claude Code onboarding confirmation restored".to_string()
+7728 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:7758:16
+     |
+7758 |           } else {
+     |  ________________^
+7759 | |             if enable {
+7760 | |                 format!(
+7761 | |                     "Enable Claude Code for VSCode integration?\nWrites primaryApiKey=\"any\" to {path}"
+...    |
+7768 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+7758 ~         } else if enable {
+7759 +             format!(
+7760 +                 "Enable Claude Code for VSCode integration?\nWrites primaryApiKey=\"any\" to {path}"
+7761 +             )
+7762 +         } else {
+7763 +             format!(
+7764 +                 "Disable Claude Code for VSCode integration?\nRemoves primaryApiKey from {path}"
+7765 +             )
+7766 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:7778:16
+     |
+7778 |           } else {
+     |  ________________^
+7779 | |             if enable {
+7780 | |                 "✓ Claude Code for VSCode integration enabled".to_string()
+7781 | |             } else {
+...    |
+7784 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+7778 ~         } else if enable {
+7779 ~             "✓ Claude Code for VSCode integration enabled".to_string()
+7780 +         } else {
+7781 ~             "✓ Claude Code for VSCode integration disabled".to_string()
+7782 +         }
+     |
+
+warning: this `else { if .. }` block can be collapsed
+    --> src\cli\i18n.rs:8015:16
+     |
+8015 |           } else {
+     |  ________________^
+8016 | |             if is_codex {
+8017 | |                 format!("Edit common config snippet for {app} (TOML; empty to clear):")
+8018 | |             } else {
+...    |
+8021 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+     |
+8015 ~         } else if is_codex {
+8016 +             format!("Edit common config snippet for {app} (TOML; empty to clear):")
+8017 +         } else {
+8018 +             format!("Edit common config snippet for {app} (JSON object; empty to clear):")
+8019 +         }
+     |
+
+warning: this `if` has identical blocks
+    --> src\cli\i18n.rs:8496:25
+     |
+8496 |           if is_chinese() {
+     |  _________________________^
+8497 | |             format!("{pct}%  ({downloaded_kb} / {total_kb} KB)")
+8498 | |         } else {
+     | |_________^
+     |
+note: same as this
+    --> src\cli\i18n.rs:8498:16
+     |
+8498 |           } else {
+     |  ________________^
+8499 | |             format!("{pct}%  ({downloaded_kb} / {total_kb} KB)")
+8500 | |         }
+     | |_________^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: unnecessary closure used with `bool::then`
+   --> src\cli\tui\app\content_config.rs:517:25
+    |
+517 |                         (!options.is_empty()).then(|| (row, 0, options))
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_lazy_evaluations
+    = note: `#[warn(clippy::unnecessary_lazy_evaluations)]` on by default
+help: use `then_some` instead
+    |
+517 -                         (!options.is_empty()).then(|| (row, 0, options))
+517 +                         (!options.is_empty()).then_some((row, 0, options))
+    |
+
+warning: this `if` has identical blocks
+   --> src\cli\tui\app\editor_state.rs:140:32
+    |
+140 |           if segments.is_empty() {
+    |  ________________________________^
+141 | |             segments.push(current);
+142 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\tui\app\editor_state.rs:142:16
+    |
+142 |           } else {
+    |  ________________^
+143 | |             segments.push(current);
+144 | |         }
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this `match` expression can be replaced with `?`
+  --> src\cli\tui\app\form_handlers\mcp.rs:71:43
+   |
+71 |           let (fields, selected, editing) = match self.prepare_mcp_field_selection() {
+   |  ___________________________________________^
+72 | |             Some(state) => state,
+73 | |             None => return None,
+74 | |         };
+   | |_________^ help: try instead: `self.prepare_mcp_field_selection()?`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#question_mark
+   = note: `#[warn(clippy::question_mark)]` on by default
+
+warning: this `match` expression can be replaced with `?`
+   --> src\cli\tui\app\form_handlers\provider.rs:109:43
+    |
+109 |           let (fields, selected, editing) = match self.prepare_provider_field_selection() {
+    |  ___________________________________________^
+110 | |             Some(state) => state,
+111 | |             None => return None,
+112 | |         };
+    | |_________^ help: try instead: `self.prepare_provider_field_selection()?`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#question_mark
+
+warning: manual implementation of `.is_multiple_of()`
+   --> src\cli\tui\app\menu.rs:209:46
+    |
+209 |         matches!(self.route, Route::Main) && self.tick % PROXY_ACTIVITY_POLL_INTERVAL_TICKS == 0
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `self.tick.is_multiple_of(PROXY_ACTIVITY_POLL_INTERVAL_TICKS)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#manual_is_multiple_of
+    = note: `#[warn(clippy::manual_is_multiple_of)]` on by default
+
+warning: this `let...else` may be rewritten with the `?` operator
+   --> src\cli\tui\form\provider_json.rs:590:17
+    |
+590 | /                 let Some(target_value) = target_obj.get_mut(key) else {
+591 | |                     return None;
+592 | |                 };
+    | |__________________^ help: replace it with: `let target_value = target_obj.get_mut(key)?;`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#question_mark
+
+warning: large size difference between variants
+   --> src\cli\tui\form.rs:350:1
+    |
+350 | / pub enum FormState {
+351 | |     ProviderAdd(ProviderAddFormState),
+    | |     --------------------------------- the largest variant contains at least 1016 bytes
+352 | |     McpAdd(McpAddFormState),
+    | |     ----------------------- the second-largest variant contains at least 272 bytes
+353 | | }
+    | |_^ the entire enum is at least 1016 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+351 -     ProviderAdd(ProviderAddFormState),
+351 +     ProviderAdd(Box<ProviderAddFormState>),
+    |
+
+warning: using `clone` on type `ProviderAddField` which implements the `Copy` trait
+   --> src\cli\tui\runtime_actions\providers.rs:496:16
+    |
+496 |         field: field.clone(),
+    |                ^^^^^^^^^^^^^ help: try removing the `clone` call: `field`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#clone_on_copy
+    = note: `#[warn(clippy::clone_on_copy)]` on by default
+
+warning: this function has too many arguments (15/7)
+   --> src\cli\tui\runtime_actions\mod.rs:109:1
+    |
+109 | / pub(crate) fn handle_action(
+110 | |     terminal: &mut TuiTerminal,
+111 | |     app: &mut App,
+112 | |     data: &mut UiData,
+...   |
+124 | |     action: Action,
+125 | | ) -> Result<(), AppError> {
+    | |_________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this `else { if .. }` block can be collapsed
+   --> src\cli\tui\ui\chrome.rs:318:12
+    |
+318 |       } else {
+    |  ____________^
+319 | |         if theme.no_color {
+320 | |             let proxy_segment = if proxy_action_available {
+321 | |                 format!("  P {}", proxy_footer_label)
+...   |
+414 | |     };
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#collapsible_else_if
+help: collapse nested if block
+    |
+318 ~     } else if theme.no_color {
+319 +         let proxy_segment = if proxy_action_available {
+320 +             format!("  P {}", proxy_footer_label)
+321 +         } else {
+322 +             String::new()
+323 +         };
+324 +         vec![Span::styled(
+325 +             format!(
+326 +                 "{} {}  {} {}{}",
+327 +                 texts::tui_footer_group_nav(),
+328 +                 texts::tui_footer_nav_keys(),
+329 +                 texts::tui_footer_group_actions(),
+330 +                 texts::tui_footer_action_keys_global(),
+331 +                 proxy_segment,
+332 +             ),
+333 +             Style::default(),
+334 +         )]
+335 +     } else {
+336 +         let nav_bg = super::theme::terminal_palette_color((101, 113, 160)); // #6571A0
+337 +         let act_bg = super::theme::terminal_palette_color((248, 248, 248)); // #F8F8F8
+338 +         let nav_fg = super::theme::terminal_palette_color((255, 255, 255));
+339 +         let act_fg = super::theme::terminal_palette_color((108, 108, 108));
+340 +         let nav_label_style = Style::default()
+341 +             .fg(nav_fg)
+342 +             .bg(nav_bg)
+343 +             .add_modifier(Modifier::BOLD);
+344 +         let act_label_style = Style::default()
+345 +             .fg(act_fg)
+346 +             .bg(act_bg)
+347 +             .add_modifier(Modifier::BOLD);
+348 +         let nav_key_style = Style::default()
+349 +             .fg(nav_fg)
+350 +             .bg(nav_bg)
+351 +             .add_modifier(Modifier::BOLD);
+352 +         let nav_desc_style = Style::default().fg(nav_fg).bg(nav_bg);
+353 +         let act_key_style = Style::default()
+354 +             .fg(act_fg)
+355 +             .bg(act_bg)
+356 +             .add_modifier(Modifier::BOLD);
+357 +         let act_desc_style = Style::default().fg(act_fg).bg(act_bg);
+358 +         let nav_sep = Span::styled("  ", nav_desc_style);
+359 +         let act_sep = Span::styled("  ", act_desc_style);
+360 + 
+361 +         let nav_items: &[(&str, &str)] = if i18n::is_chinese() {
+362 ~             &[("←→", "菜单/内容"), ("↑↓", "移动")]
+363 +         } else {
+364 ~             &[("←→", "menu/content"), ("↑↓", "move")]
+365 +         };
+366 + 
+367 +         let act_items_base: &[(&str, &str)] = if i18n::is_chinese() {
+368 +             &[
+369 ~                 ("[ ]", "切换应用"),
+370 ~                 ("/", "过滤"),
+371 ~                 ("Esc", "返回"),
+372 ~                 ("?", "帮助"),
+373 +             ]
+374 +         } else {
+375 +             &[
+376 +                 ("[ ]", "switch app"),
+377 +                 ("/", "filter"),
+378 +                 ("Esc", "back"),
+379 +                 ("?", "help"),
+380 +             ]
+381 +         };
+382 + 
+383 +         let mut act_items = act_items_base.to_vec();
+384 +         if proxy_action_available {
+385 +             act_items.push(("P", proxy_footer_label));
+386 +         }
+387 + 
+388 +         let mut v = Vec::new();
+389 +         // NAV block
+390 +         v.push(Span::styled(" NAV ", nav_label_style));
+391 +         for (i, (key, desc)) in nav_items.iter().enumerate() {
+392 +             if i > 0 {
+393 +                 v.push(nav_sep.clone());
+394 +             }
+395 +             v.push(Span::styled(format!(" {} ", key), nav_key_style));
+396 +             v.push(Span::styled(format!(" {}", desc), nav_desc_style));
+397 +         }
+398 +         v.push(Span::styled(" ", nav_desc_style));
+399 +         // gap between blocks
+400 +         v.push(Span::raw(" "));
+401 +         // ACT block
+402 +         v.push(Span::styled(" ACT ", act_label_style));
+403 +         for (i, (key, desc)) in act_items.iter().enumerate() {
+404 +             if i > 0 {
+405 +                 v.push(act_sep.clone());
+406 +             }
+407 +             v.push(Span::styled(format!(" {} ", key), act_key_style));
+408 +             v.push(Span::styled(format!(" {}", desc), act_desc_style));
+409 +         }
+410 +         v.push(Span::styled(" ", act_desc_style));
+411 +         v
+412 ~     };
+    |
+
+warning: clamp-like pattern without using clamp function
+   --> src\cli\tui\ui\chrome.rs:475:21
+    |
+475 |       let max_width = content_area
+    |  _____________________^
+476 | |         .width
+477 | |         .saturating_sub(4)
+478 | |         .max(1)
+479 | |         .min(TOAST_MAX_WIDTH);
+    | |_____________________________^
+    |
+    = note: clamp will panic if max < min
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#manual_clamp
+    = note: `#[warn(clippy::manual_clamp)]` on by default
+help: replace with clamp
+    |
+475 ~     let max_width = content_area
+476 +         .width
+477 ~         .saturating_sub(4).clamp(1, TOAST_MAX_WIDTH);
+    |
+
+warning: this `.into_iter()` call is equivalent to `.iter()` and will not consume the `slice`
+   --> src\cli\tui\ui\config.rs:516:48
+    |
+516 |     for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+    |                                                ^^^^^^^^^ help: call directly: `iter`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#into_iter_on_ref
+    = note: `#[warn(clippy::into_iter_on_ref)]` on by default
+
+warning: this function has too many arguments (8/7)
+   --> src\cli\tui\ui\config.rs:530:1
+    |
+530 | / fn render_openclaw_env_route(
+531 | |     frame: &mut Frame<'_>,
+532 | |     app: &App,
+533 | |     area: Rect,
+...   |
+538 | |     warnings: Option<&[crate::openclaw_config::OpenClawHealthWarning]>,
+539 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this `.into_iter()` call is equivalent to `.iter()` and will not consume the `slice`
+   --> src\cli\tui\ui\config.rs:855:48
+    |
+855 |     for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+    |                                                ^^^^^^^^^ help: call directly: `iter`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#into_iter_on_ref
+
+warning: this function has too many arguments (8/7)
+   --> src\cli\tui\ui\config.rs:865:1
+    |
+865 | / fn render_openclaw_tools_route(
+866 | |     frame: &mut Frame<'_>,
+867 | |     app: &App,
+868 | |     data: &UiData,
+...   |
+873 | |     warnings: Option<&[crate::openclaw_config::OpenClawHealthWarning]>,
+874 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this `.into_iter()` call is equivalent to `.iter()` and will not consume the `slice`
+    --> src\cli\tui\ui\config.rs:1355:48
+     |
+1355 |     for (row, chunk) in rows.iter().zip(chunks.into_iter()) {
+     |                                                ^^^^^^^^^ help: call directly: `iter`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#into_iter_on_ref
+
+warning: this function has too many arguments (8/7)
+    --> src\cli\tui\ui\config.rs:1365:1
+     |
+1365 | / fn render_openclaw_agents_route(
+1366 | |     frame: &mut Frame<'_>,
+1367 | |     app: &App,
+1368 | |     data: &UiData,
+...    |
+1373 | |     warnings: Option<&[crate::openclaw_config::OpenClawHealthWarning]>,
+1374 | | ) {
+     | |_^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: this `if` has identical blocks
+   --> src\cli\tui\ui\forms\provider.rs:442:11
+    |
+442 |           ) {
+    |  ___________^
+443 | |             input.value.clone()
+444 | |         } else {
+    | |_________^
+    |
+note: same as this
+   --> src\cli\tui\ui\forms\provider.rs:444:16
+    |
+444 |           } else {
+    |  ________________^
+445 | |             input.value.clone()
+446 | |         };
+    | |_________^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#if_same_then_else
+
+warning: this function has too many arguments (11/7)
+   --> src\cli\tui\ui\main_page.rs:270:1
+    |
+270 | / fn render_proxy_activity_dashboard(
+271 | |     frame: &mut Frame<'_>,
+272 | |     area: Rect,
+273 | |     theme: &super::theme::Theme,
+...   |
+281 | |     output_tokens_total: u64,
+282 | | ) -> Rect {
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: clamp-like pattern without using clamp function
+  --> src\cli\tui\ui\overlay\layout.rs:26:21
+   |
+26 |       let max_width = content_area
+   |  _____________________^
+27 | |         .width
+28 | |         .saturating_sub(4)
+29 | |         .max(1)
+30 | |         .min(TOAST_MAX_WIDTH);
+   | |_____________________________^
+   |
+   = note: clamp will panic if max < min
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#manual_clamp
+help: replace with clamp
+   |
+26 ~     let max_width = content_area
+27 +         .width
+28 ~         .saturating_sub(4).clamp(1, TOAST_MAX_WIDTH);
+   |
+
+warning: this function has too many arguments (11/7)
+   --> src\cli\tui\ui\overlay\pickers.rs:233:1
+    |
+233 | / pub(super) fn render_model_fetch_picker_overlay(
+234 | |     frame: &mut Frame<'_>,
+235 | |     app: &App,
+236 | |     content_area: Rect,
+...   |
+244 | |     selected_idx: usize,
+245 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#too_many_arguments
+
+warning: casting to the same type is unnecessary (`u64` -> `u64`)
+   --> src\cli\tui\ui\overlay\status.rs:217:23
+    |
+217 |             let pct = ((downloaded.saturating_mul(100) / t).min(100)) as u64;
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `((downloaded.saturating_mul(100) / t).min(100))`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_cast
+    = note: `#[warn(clippy::unnecessary_cast)]` on by default
+
+warning: `cc-switch` (lib) generated 157 warnings (run `cargo clippy --fix --lib -p cc-switch` to apply 33 suggestions)
+warning: match expression looks like `matches!` macro
+  --> src\main.rs:53:5
+   |
+53 | /     match command {
+54 | |         Some(Commands::Completions { .. }) | Some(Commands::Update(_)) => false,
+55 | |         _ => true,
+56 | |     }
+   | |_____^ help: try: `!matches!(command, Some(Commands::Completions { .. }) | Some(Commands::Update(_)))`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#match_like_matches_macro
+   = note: `#[warn(clippy::match_like_matches_macro)]` on by default
+
+warning: `cc-switch` (bin "cc-switch") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.68s

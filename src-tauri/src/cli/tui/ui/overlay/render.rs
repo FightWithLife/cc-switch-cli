@@ -81,6 +81,7 @@ pub(crate) fn render_overlay(
             )
         }
         Overlay::ModelFetchPicker {
+            field,
             input,
             query,
             fetching,
@@ -90,8 +91,10 @@ pub(crate) fn render_overlay(
             ..
         } => super::pickers::render_model_fetch_picker_overlay(
             frame,
+            app,
             content_area,
             theme,
+            *field,
             input,
             query,
             *fetching,

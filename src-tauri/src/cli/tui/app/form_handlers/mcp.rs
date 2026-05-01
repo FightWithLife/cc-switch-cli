@@ -68,10 +68,7 @@ impl App {
     }
 
     fn handle_mcp_fields_key(&mut self, key: KeyEvent) -> Option<Action> {
-        let (fields, selected, editing) = match self.prepare_mcp_field_selection() {
-            Some(state) => state,
-            None => return None,
-        };
+        let (fields, selected, editing) = self.prepare_mcp_field_selection()?;
 
         if editing {
             self.handle_mcp_field_editing(selected, key)
