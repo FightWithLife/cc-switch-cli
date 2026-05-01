@@ -8932,7 +8932,7 @@ mod tests {
     }
 
     #[test]
-    fn provider_opencode_model_id_field_enter_starts_editing() {
+    fn provider_opencode_model_config_field_enter_opens_list_route() {
         let mut app = App::new(Some(AppType::OpenCode));
         app.route = Route::Providers;
         app.focus = Focus::Content;
@@ -8952,20 +8952,15 @@ mod tests {
             form.field_idx = form
                 .fields()
                 .iter()
-                .position(|field| *field == ProviderAddField::OpenCodeModelId)
-                .expect("OpenCodeModelId field should exist");
+                .position(|field| *field == ProviderAddField::OpenCodeModelConfig)
+                .expect("OpenCodeModelConfig field should exist");
         } else {
             panic!("expected ProviderAdd form");
         }
 
         let action = app.on_key(key(KeyCode::Enter), &data);
         assert!(matches!(action, Action::None));
-        let editing = match app.form.as_ref() {
-            Some(super::super::form::FormState::ProviderAdd(form)) => form.editing,
-            other => panic!("expected ProviderAdd form, got: {other:?}"),
-        };
-        assert!(editing, "OpenCode model id should enter plain editing mode");
-        assert!(matches!(app.overlay, Overlay::None));
+        assert!(matches!(app.route, Route::OpenCodeModelConfigList { .. }));
     }
 
     #[test]
@@ -9040,6 +9035,218 @@ mod tests {
         };
         assert_eq!(model_count_after_delete, 2);
         assert_eq!(current_id_after_delete, "gpt-4.1-mini");
+    }
+
+    #[test]
+    fn opencode_model_list_route_enter_opens_detail_route_with_form_state() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::Providers;
+        app.focus = Focus::Content;
+
+        let data = UiData::default();
+        app.on_key(key(KeyCode::Char('a')), &data);
+        app.on_key(key(KeyCode::Enter), &data);
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.opencode_models = vec![crate::provider::OpenCodeModelDraft {
+                model_id: "gpt-4.1".to_string(),
+                model_name: "GPT 4.1".to_string(),
+                original_model_id: Some("gpt-4.1".to_string()),
+                ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+            }];
+            form.load_current_opencode_model_fields();
+        } else {
+            panic!("expected ProviderAdd form");
+        }
+
+        app.route = Route::OpenCodeModelConfigList {
+            provider_id: "demo".to_string(),
+        };
+        app.provider_idx = 0;
+
+        let action = app.on_key(key(KeyCode::Enter), &data);
+        assert!(matches!(
+            action,
+            Action::SwitchRoute(Route::OpenCodeModelConfigDetail { .. })
+        ));
+        assert!(matches!(
+            app.route,
+            Route::OpenCodeModelConfigDetail { model_idx: 0, .. }
+        ));
+
+        let (current_idx, field_idx, editing) = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => {
+                (form.opencode_model_idx, form.field_idx, form.editing)
+            }
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(current_idx, 0);
+        assert_eq!(field_idx, 0);
+        assert!(!editing);
+    }
+
+    #[test]
+    fn opencode_model_list_route_enter_second_item_opens_second_model_detail() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::Providers;
+        app.focus = Focus::Content;
+
+        let data = UiData::default();
+        app.on_key(key(KeyCode::Char('a')), &data);
+        app.on_key(key(KeyCode::Enter), &data);
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.opencode_models = vec![
+                crate::provider::OpenCodeModelDraft {
+                    model_id: "gpt-4.1".to_string(),
+                    model_name: "GPT 4.1".to_string(),
+                    original_model_id: Some("gpt-4.1".to_string()),
+                    ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+                },
+                crate::provider::OpenCodeModelDraft {
+                    model_id: "gpt-5".to_string(),
+                    model_name: "GPT 5".to_string(),
+                    original_model_id: Some("gpt-5".to_string()),
+                    ..crate::provider::OpenCodeModelDraft::new("gpt-5".to_string())
+                },
+            ];
+            form.load_current_opencode_model_fields();
+        } else {
+            panic!("expected ProviderAdd form");
+        }
+
+        app.route = Route::OpenCodeModelConfigList {
+            provider_id: "demo".to_string(),
+        };
+        app.provider_idx = 1;
+
+        let action = app.on_key(key(KeyCode::Enter), &data);
+        assert!(matches!(
+            action,
+            Action::SwitchRoute(Route::OpenCodeModelConfigDetail { model_idx: 1, .. })
+        ));
+        assert!(matches!(
+            app.route,
+            Route::OpenCodeModelConfigDetail { model_idx: 1, .. }
+        ));
+
+        let (current_idx, model_id) = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => {
+                (form.opencode_model_idx, form.opencode_model_id.value.clone())
+            }
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(current_idx, 1);
+        assert_eq!(model_id, "gpt-5");
+    }
+
+    #[test]
+    fn opencode_model_detail_route_uses_inline_edit_and_enter_fetch() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::Providers;
+        app.focus = Focus::Content;
+
+        let data = UiData::default();
+        app.on_key(key(KeyCode::Char('a')), &data);
+        app.on_key(key(KeyCode::Enter), &data);
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.opencode_base_url.set("https://api.example.com/v1");
+            form.opencode_api_key.set("sk-demo");
+            form.opencode_models = vec![crate::provider::OpenCodeModelDraft {
+                model_id: "gpt-4.1".to_string(),
+                model_name: String::new(),
+                original_model_id: Some("gpt-4.1".to_string()),
+                ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+            }];
+            form.opencode_model_idx = 0;
+            form.load_current_opencode_model_fields();
+            form.field_idx = 0;
+            form.editing = false;
+        } else {
+            panic!("expected ProviderAdd form");
+        }
+
+        app.route = Route::OpenCodeModelConfigDetail {
+            provider_id: "demo".to_string(),
+            model_idx: 0,
+        };
+
+        let action = app.on_key(key(KeyCode::Enter), &data);
+        assert!(matches!(action, Action::None));
+        let editing = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => form.editing,
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert!(editing, "Enter should start inline editing");
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.editing = false;
+            form.field_idx = 1;
+        }
+
+        let action = app.on_key(key(KeyCode::Enter), &data);
+        match action {
+            Action::ProviderModelFetch {
+                base_url,
+                api_key,
+                field,
+                claude_idx,
+            } => {
+                assert_eq!(base_url, "https://api.example.com/v1");
+                assert_eq!(api_key.as_deref(), Some("sk-demo"));
+                assert_eq!(field, ProviderAddField::OpenCodeModelId);
+                assert_eq!(claude_idx, None);
+            }
+            other => panic!("expected ProviderModelFetch, got: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn opencode_model_fetch_picker_confirm_syncs_detail_draft_back_to_list() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::OpenCodeModelConfigDetail {
+            provider_id: "demo".to_string(),
+            model_idx: 0,
+        };
+        app.focus = Focus::Content;
+
+        let mut form = super::super::form::ProviderAddFormState::new(AppType::OpenCode);
+        form.opencode_models = vec![crate::provider::OpenCodeModelDraft {
+            model_id: "gpt-4.1".to_string(),
+            model_name: String::new(),
+            original_model_id: Some("gpt-4.1".to_string()),
+            ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+        }];
+        form.opencode_model_idx = 0;
+        form.load_current_opencode_model_fields();
+        form.field_idx = 1;
+        app.form = Some(super::super::form::FormState::ProviderAdd(form));
+        app.overlay = Overlay::ModelFetchPicker {
+            request_id: 1,
+            field: ProviderAddField::OpenCodeModelId,
+            claude_idx: None,
+            input: "gpt-5".to_string(),
+            query: "gpt-5".to_string(),
+            fetching: false,
+            models: vec!["gpt-5".to_string()],
+            error: None,
+            selected_idx: 0,
+        };
+
+        let action = app.on_key(key(KeyCode::Enter), &data());
+        assert!(matches!(action, Action::None));
+
+        let (input_value, stored_value) = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => (
+                form.opencode_model_id.value.clone(),
+                form.opencode_models[0].model_id.clone(),
+            ),
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(input_value, "gpt-5");
+        assert_eq!(stored_value, "gpt-5");
+        assert!(matches!(app.overlay, Overlay::None));
     }
 
     #[test]

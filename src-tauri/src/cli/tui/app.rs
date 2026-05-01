@@ -20,6 +20,7 @@ use super::{data, form};
 mod app_state;
 mod content_config;
 mod content_entities;
+mod content_opencode_models;
 mod content_skills;
 mod editor_handlers;
 mod editor_state;

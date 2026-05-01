@@ -190,10 +190,6 @@ impl ProviderAddFormState {
                 fields.push(ProviderAddField::OpenCodeApiKey);
                 fields.push(ProviderAddField::OpenCodeBaseUrl);
                 fields.push(ProviderAddField::OpenCodeModelConfig);
-                fields.push(ProviderAddField::OpenCodeModelId);
-                fields.push(ProviderAddField::OpenCodeModelName);
-                fields.push(ProviderAddField::OpenCodeModelContextLimit);
-                fields.push(ProviderAddField::OpenCodeModelOutputLimit);
             }
             AppType::OpenClaw => {
                 fields.push(ProviderAddField::OpenClawApiProtocol);

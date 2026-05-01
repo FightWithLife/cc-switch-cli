@@ -78,7 +78,10 @@ impl App {
     pub(crate) fn nav_item_for_route(app_type: &AppType, route: &Route) -> NavItem {
         match route {
             Route::Main => NavItem::Main,
-            Route::Providers | Route::ProviderDetail { .. } => NavItem::Providers,
+            Route::Providers
+            | Route::ProviderDetail { .. }
+            | Route::OpenCodeModelConfigList { .. }
+            | Route::OpenCodeModelConfigDetail { .. } => NavItem::Providers,
             Route::Mcp => NavItem::Mcp,
             Route::Prompts => NavItem::Prompts,
             Route::Config => NavItem::Config,
@@ -297,7 +300,13 @@ impl App {
             return self.on_editor_key(key);
         }
 
-        if self.form.is_some() {
+        let opencode_model_route_active = self.form.is_some()
+            && matches!(
+                self.route,
+                Route::OpenCodeModelConfigList { .. } | Route::OpenCodeModelConfigDetail { .. }
+            );
+
+        if self.form.is_some() && !opencode_model_route_active {
             return self.on_form_key(key, data);
         }
 
@@ -322,6 +331,20 @@ impl App {
 
         if self.should_route_printable_content_input_before_globals(&key) {
             return self.on_content_key(key, data);
+        }
+
+        if opencode_model_route_active {
+            let key = match key.code {
+                KeyCode::Char('h') => KeyEvent::new(KeyCode::Left, key.modifiers),
+                KeyCode::Char('j') => KeyEvent::new(KeyCode::Down, key.modifiers),
+                KeyCode::Char('k') => KeyEvent::new(KeyCode::Up, key.modifiers),
+                KeyCode::Char('l') => KeyEvent::new(KeyCode::Right, key.modifiers),
+                _ => key,
+            };
+            return match self.focus {
+                Focus::Nav => self.on_nav_key(key),
+                Focus::Content => self.on_content_key(key, data),
+            };
         }
 
         // Global actions.
@@ -459,6 +482,13 @@ impl App {
         match self.route.clone() {
             Route::Providers => self.on_providers_key(key, data),
             Route::ProviderDetail { id } => self.on_provider_detail_key(key, data, &id),
+            Route::OpenCodeModelConfigList { provider_id } => {
+                self.on_opencode_model_list_key(key, data, &provider_id)
+            }
+            Route::OpenCodeModelConfigDetail {
+                provider_id,
+                model_idx,
+            } => self.on_opencode_model_detail_key(key, data, &provider_id, model_idx),
             Route::Mcp => self.on_mcp_key(key, data),
             Route::Prompts => self.on_prompts_key(key, data),
             Route::Config => self.on_config_key(key, data),
@@ -482,7 +512,20 @@ impl App {
         }
     }
     pub(crate) fn clamp_selections(&mut self, data: &UiData) {
-        let providers_len = visible_providers(&self.app_type, &self.filter, data).len();
+        let providers_len = if matches!(
+            self.route,
+            Route::OpenCodeModelConfigList { .. } | Route::OpenCodeModelConfigDetail { .. }
+        ) {
+            self.form
+                .as_ref()
+                .and_then(|form| match form {
+                    FormState::ProviderAdd(form) => Some(form.opencode_models.len()),
+                    _ => None,
+                })
+                .unwrap_or(0)
+        } else {
+            visible_providers(&self.app_type, &self.filter, data).len()
+        };
         if providers_len == 0 {
             self.provider_idx = 0;
         } else {

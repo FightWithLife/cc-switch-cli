@@ -373,6 +373,13 @@ impl App {
                     if let Some(input_field) = provider.input_mut(field) {
                         input_field.set(selected_model);
                     }
+                    if field == ProviderAddField::OpenCodeModelId
+                        && matches!(self.route, Route::OpenCodeModelConfigDetail { .. })
+                    {
+                        if let Err(err) = provider.sync_current_opencode_model() {
+                            self.push_toast(err, ToastKind::Error);
+                        }
+                    }
                 }
                 Action::None
             }
