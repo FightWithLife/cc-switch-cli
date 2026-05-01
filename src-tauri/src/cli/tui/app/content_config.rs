@@ -514,7 +514,7 @@ impl App {
                         })
                     } else {
                         let options = form.available_fallback_options(&model_options);
-                        (!options.is_empty()).then(|| (row, 0, options))
+                        (!options.is_empty()).then_some((row, 0, options))
                     }
                 }
                 OpenClawAgentsSection::Runtime => None,
@@ -1047,9 +1047,13 @@ impl App {
         self.overlay = Overlay::None;
         self.focus = Focus::Content;
         self.editor = None;
-        self.form = Some(FormState::ProviderAdd(ProviderAddFormState::new(
-            self.app_type.clone(),
-        )));
+        let form = ProviderAddFormState::new(self.app_type.clone());
+        self.opencode_draft = if self.app_type == AppType::OpenCode {
+            Some(OpenCodeProviderDraft::from_form(&form))
+        } else {
+            None
+        };
+        self.form = Some(FormState::ProviderAdd(form));
     }
 
     pub(crate) fn open_provider_edit_form(&mut self, row: &super::data::ProviderRow) {
@@ -1057,10 +1061,13 @@ impl App {
         self.overlay = Overlay::None;
         self.focus = Focus::Content;
         self.editor = None;
-        self.form = Some(FormState::ProviderAdd(ProviderAddFormState::from_provider(
-            self.app_type.clone(),
-            &row.provider,
-        )));
+        let form = ProviderAddFormState::from_provider(self.app_type.clone(), &row.provider);
+        self.opencode_draft = if self.app_type == AppType::OpenCode {
+            Some(OpenCodeProviderDraft::from_provider(&row.provider))
+        } else {
+            None
+        };
+        self.form = Some(FormState::ProviderAdd(form));
     }
 
     pub(crate) fn open_mcp_add_form(&mut self) {

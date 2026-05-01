@@ -360,15 +360,17 @@ impl App {
                 let claude_idx = *claude_idx;
                 self.overlay = Overlay::None;
 
-                if let Some(FormState::ProviderAdd(provider)) = self.form.as_mut() {
-                    if field == ProviderAddField::ClaudeModelConfig {
+                if field == ProviderAddField::ClaudeModelConfig {
+                    if let Some(FormState::ProviderAdd(provider)) = self.form.as_mut() {
                         if let Some(idx) = claude_idx {
                             if let Some(input_field) = provider.claude_model_input_mut(idx) {
                                 input_field.set(selected_model);
                                 provider.mark_claude_model_config_touched();
                             }
                         }
-                    } else if let Some(input_field) = provider.input_mut(field) {
+                    }
+                } else if let Some(FormState::ProviderAdd(provider)) = self.form.as_mut() {
+                    if let Some(input_field) = provider.input_mut(field) {
                         input_field.set(selected_model);
                     }
                 }

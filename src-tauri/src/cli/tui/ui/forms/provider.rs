@@ -100,9 +100,17 @@ pub(crate) fn render_provider_add_form(
         .split(fields_inner);
 
     let fields = provider.fields();
+    let opencode_model_count =
+        matches!(provider.app_type, AppType::OpenCode).then_some(provider.opencode_models.len());
     let rows_data = fields
         .iter()
-        .map(|field| provider_field_label_and_value(provider, *field))
+        .map(|field| {
+            provider_field_label_and_value_with_opencode_count(
+                provider,
+                *field,
+                opencode_model_count,
+            )
+        })
         .collect::<Vec<_>>();
 
     let label_col_width = field_label_column_width(
@@ -293,6 +301,14 @@ pub(crate) fn provider_field_label_and_value(
     provider: &super::form::ProviderAddFormState,
     field: ProviderAddField,
 ) -> (String, String) {
+    provider_field_label_and_value_with_opencode_count(provider, field, None)
+}
+
+pub(crate) fn provider_field_label_and_value_with_opencode_count(
+    provider: &super::form::ProviderAddFormState,
+    field: ProviderAddField,
+    opencode_model_count: Option<usize>,
+) -> (String, String) {
     let label = match field {
         ProviderAddField::Id => texts::tui_label_id().to_string(),
         ProviderAddField::Name => texts::header_name().to_string(),
@@ -339,11 +355,7 @@ pub(crate) fn provider_field_label_and_value(
         ProviderAddField::OpenCodeModelContextLimit => texts::tui_label_context_limit().to_string(),
         ProviderAddField::OpenCodeModelOutputLimit => texts::tui_label_output_limit().to_string(),
         ProviderAddField::OpenCodeModelConfig => {
-            if i18n::is_chinese() {
-                "模型配置".to_string()
-            } else {
-                "Model Config".to_string()
-            }
+            texts::tui_label_opencode_model_config().to_string()
         }
         ProviderAddField::CommonConfigDivider => "- - - - - - - - -".to_string(),
         ProviderAddField::CommonSnippet => texts::tui_config_item_common_snippet().to_string(),
@@ -385,18 +397,12 @@ pub(crate) fn provider_field_label_and_value(
             }
         }
         ProviderAddField::OpenClawModels => provider.openclaw_models_summary(),
+        ProviderAddField::OpenCodeModelName => provider.opencode_model_display_name(),
         ProviderAddField::OpenCodeModelConfig => {
-            let count = provider.opencode_model_count();
-            if count == 0 {
-                if i18n::is_chinese() {
-                    "0 个模型".to_string()
-                } else {
-                    "0 models".to_string()
-                }
-            } else if i18n::is_chinese() {
-                format!("{} 个模型", count)
+            if let Some(count) = opencode_model_count {
+                texts::tui_opencode_model_count(count)
             } else {
-                format!("{} model{}", count, if count == 1 { "" } else { "s" })
+                provider.opencode_model_summary()
             }
         }
         ProviderAddField::CommonConfigDivider => "- - - - - - - - - -".to_string(),

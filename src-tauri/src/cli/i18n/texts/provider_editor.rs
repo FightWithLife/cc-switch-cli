@@ -438,6 +438,182 @@ pub fn updated_config_header() -> &'static str {
     }
 }
 
+pub fn tui_label_opencode_model_config() -> &'static str {
+    if is_chinese() {
+        "模型配置"
+    } else {
+        "Model Config"
+    }
+}
+
+pub fn tui_opencode_model_count(count: usize) -> String {
+    if is_chinese() {
+        format!("{count} 个模型")
+    } else {
+        format!("{count} model{}", if count == 1 { "" } else { "s" })
+    }
+}
+
+pub fn tui_opencode_model_empty_list() -> &'static str {
+    if is_chinese() {
+        "未配置模型。按 [n] 添加。"
+    } else {
+        "No models configured. Press [n] to add one."
+    }
+}
+
+pub fn tui_opencode_model_list_title() -> &'static str {
+    if is_chinese() {
+        " 模型配置 "
+    } else {
+        " Model Config "
+    }
+}
+
+pub fn tui_opencode_model_no_data() -> &'static str {
+    if is_chinese() {
+        "无可用数据。请先打开供应商编辑页面。"
+    } else {
+        "No data available. Open the provider edit form first."
+    }
+}
+
+pub fn tui_opencode_model_list_footer() -> &'static str {
+    if is_chinese() {
+        "[Enter] 编辑模型  [n] 新建模型  [Del] 删除  [Esc] 返回"
+    } else {
+        "[Enter] edit model  [n] new model  [Del] delete  [Esc] back"
+    }
+}
+
+pub fn tui_opencode_model_new_title() -> &'static str {
+    if is_chinese() {
+        " 新建模型 "
+    } else {
+        " New Model "
+    }
+}
+
+pub fn tui_opencode_model_edit_title(model_id: &str) -> String {
+    if is_chinese() {
+        format!(" 编辑模型 {model_id} ")
+    } else {
+        format!(" Edit Model {model_id} ")
+    }
+}
+
+pub fn tui_opencode_model_name_label() -> &'static str {
+    if is_chinese() {
+        "模型名称"
+    } else {
+        "Model Name"
+    }
+}
+
+pub fn tui_opencode_model_input_limit_label() -> &'static str {
+    if is_chinese() {
+        "输入限制"
+    } else {
+        "Input Limit"
+    }
+}
+
+pub fn tui_opencode_model_output_limit_label() -> &'static str {
+    if is_chinese() {
+        "输出限制"
+    } else {
+        "Output Limit"
+    }
+}
+
+pub fn tui_opencode_model_new_hint() -> &'static str {
+    if is_chinese() {
+        "新模型将在保存时创建。\n按 [Esc] 返回列表。"
+    } else {
+        "New model will be created on save.\nPress [Esc] to go back."
+    }
+}
+
+pub fn tui_opencode_model_not_found() -> &'static str {
+    if is_chinese() {
+        "模型数据不存在。"
+    } else {
+        "Model data not found."
+    }
+}
+
+pub fn tui_opencode_model_detail_footer() -> &'static str {
+    if is_chinese() {
+        "[↑/↓] 切换字段  [Enter] 编辑  [Ctrl+S] 保存  [Esc] 返回"
+    } else {
+        "[↑/↓] switch field  [Enter] edit  [Ctrl+S] save  [Esc] back"
+    }
+}
+
+pub fn tui_opencode_model_finish_blank_first() -> &'static str {
+    if is_chinese() {
+        "请先完成当前空模型。"
+    } else {
+        "Finish the blank model first."
+    }
+}
+
+pub fn tui_opencode_model_delete_title() -> &'static str {
+    if is_chinese() {
+        "删除模型"
+    } else {
+        "Delete Model"
+    }
+}
+
+pub fn tui_opencode_model_delete_message(model_id: &str) -> String {
+    if is_chinese() {
+        format!("确定删除模型 `{model_id}` 吗？")
+    } else {
+        format!("Delete model `{model_id}`?")
+    }
+}
+
+pub fn tui_opencode_model_fetch_base_url_required() -> &'static str {
+    if is_chinese() {
+        "请先填写 Base URL。"
+    } else {
+        "Base URL is required before fetching models."
+    }
+}
+
+pub fn tui_opencode_model_edit_name_title() -> &'static str {
+    if is_chinese() {
+        "编辑模型名称"
+    } else {
+        "Edit Model Name"
+    }
+}
+
+pub fn tui_opencode_model_edit_id_title() -> &'static str {
+    if is_chinese() {
+        "编辑模型 ID"
+    } else {
+        "Edit Model ID"
+    }
+}
+
+pub fn tui_opencode_model_edit_input_limit_title() -> &'static str {
+    if is_chinese() {
+        "编辑输入限制"
+    } else {
+        "Edit Input Limit"
+    }
+}
+
+pub fn tui_opencode_model_edit_output_limit_title() -> &'static str {
+    if is_chinese() {
+        "编辑输出限制"
+    } else {
+        "Edit Output Limit"
+    }
+}
+
 // Provider Add/Edit Messages
 pub fn generated_id_message(id: &str) -> String {
     if is_chinese() {

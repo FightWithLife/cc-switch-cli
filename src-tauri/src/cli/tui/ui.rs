@@ -36,7 +36,6 @@ mod editor;
 mod forms;
 mod main_page;
 mod mcp;
-mod opencode_models;
 mod overlay;
 mod prompts;
 mod providers;
@@ -56,7 +55,6 @@ use editor::*;
 use forms::*;
 use main_page::*;
 use mcp::*;
-use opencode_models::*;
 use overlay::*;
 use prompts::*;
 use providers::*;
@@ -129,14 +127,8 @@ fn render_content(
     }
 
     if let Some(form) = &app.form {
-        // ModelConfigList/Detail 页面自行从 form 中读取数据渲染，不在这里渲染 form
-        if !matches!(
-            app.route,
-            Route::OpenCodeModelConfigList { .. } | Route::OpenCodeModelConfigDetail { .. }
-        ) {
-            render_add_form(frame, app, data, form, content_area, theme);
-            return;
-        }
+        render_add_form(frame, app, data, form, content_area, theme);
+        return;
     }
 
     match &app.route {
@@ -145,21 +137,6 @@ fn render_content(
         Route::ProviderDetail { id } => {
             render_provider_detail(frame, app, data, content_area, theme, id)
         }
-        Route::OpenCodeModelConfigList { provider_id } => {
-            render_opencode_model_list(frame, app, data, content_area, theme, provider_id)
-        }
-        Route::OpenCodeModelConfigDetail {
-            provider_id,
-            model_idx,
-        } => render_opencode_model_detail(
-            frame,
-            app,
-            data,
-            content_area,
-            theme,
-            provider_id,
-            *model_idx,
-        ),
         Route::Mcp => render_mcp(frame, app, data, content_area, theme),
         Route::Prompts => render_prompts(frame, app, data, content_area, theme),
         Route::Config => render_config(frame, app, data, content_area, theme),
@@ -203,21 +180,6 @@ fn split_filter_area(area: Rect, app: &App) -> (Option<Rect>, Rect) {
     (Some(chunks[0]), chunks[1])
 }
 
-#[cfg(test)]
-mod effect_tests {
-    use super::*;
-
-    #[test]
-    fn proxy_open_flash_uses_ping_pong_sine_in_out_once() {
-        let effect = proxy_open_flash_effect(Rect::new(0, 0, 80, 24));
-        let dsl = effect.to_dsl().unwrap().to_string();
-
-        assert!(dsl.contains("fx::ping_pong("), "{dsl}");
-        assert!(dsl.contains("SineInOut"), "{dsl}");
-        assert!(!dsl.contains("fx::repeating("), "{dsl}");
-    }
-}
-
 fn render_filter_bar(frame: &mut Frame<'_>, app: &App, area: Rect, theme: &super::theme::Theme) {
     let outer = Block::default()
         .borders(Borders::ALL)
@@ -259,5 +221,20 @@ fn render_filter_bar(frame: &mut Frame<'_>, app: &App, area: Rect, theme: &super
         let cursor_x = input_inner.x + (cursor.saturating_sub(start) as u16);
         let cursor_y = input_inner.y;
         frame.set_cursor_position((cursor_x, cursor_y));
+    }
+}
+
+#[cfg(test)]
+mod effect_tests {
+    use super::*;
+
+    #[test]
+    fn proxy_open_flash_uses_ping_pong_sine_in_out_once() {
+        let effect = proxy_open_flash_effect(Rect::new(0, 0, 80, 24));
+        let dsl = effect.to_dsl().unwrap().to_string();
+
+        assert!(dsl.contains("fx::ping_pong("), "{dsl}");
+        assert!(dsl.contains("SineInOut"), "{dsl}");
+        assert!(!dsl.contains("fx::repeating("), "{dsl}");
     }
 }

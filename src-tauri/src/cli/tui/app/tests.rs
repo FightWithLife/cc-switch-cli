@@ -702,16 +702,16 @@ mod tests {
     #[test]
     fn filter_mode_updates_buffer_and_exits() {
         let mut app = App::new(Some(AppType::Claude));
-        assert_eq!(app.filter.active, false);
+        assert!(!app.filter.active);
         app.on_key(key(KeyCode::Char('/')), &data());
-        assert_eq!(app.filter.active, true);
+        assert!(app.filter.active);
         app.on_key(key(KeyCode::Char('a')), &data());
         app.on_key(key(KeyCode::Char('b')), &data());
         assert_eq!(app.filter.buffer, "ab");
         app.on_key(key(KeyCode::Backspace), &data());
         assert_eq!(app.filter.buffer, "a");
         app.on_key(key(KeyCode::Enter), &data());
-        assert_eq!(app.filter.active, false);
+        assert!(!app.filter.active);
     }
 
     #[test]
@@ -3071,6 +3071,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     #[serial(home_settings)]
     fn openclaw_workspace_open_failure_is_localized() {
@@ -3196,6 +3197,7 @@ mod tests {
         assert_eq!(editor.text(), "late content");
     }
 
+    #[cfg(unix)]
     #[test]
     #[serial(home_settings)]
     fn openclaw_daily_memory_save_failure_is_localized() {
@@ -8927,6 +8929,117 @@ mod tests {
             other => panic!("expected ProviderAdd form, got: {other:?}"),
         };
         assert_eq!(format, super::super::form::ClaudeApiFormat::Anthropic);
+    }
+
+    #[test]
+    fn provider_opencode_model_id_field_enter_starts_editing() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::Providers;
+        app.focus = Focus::Content;
+
+        let data = UiData::default();
+        app.on_key(key(KeyCode::Char('a')), &data);
+        app.on_key(key(KeyCode::Enter), &data);
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.focus = super::super::form::FormFocus::Fields;
+            form.editing = false;
+            form.opencode_models
+                .push(crate::provider::OpenCodeModelDraft::new(
+                    "gpt-4.1".to_string(),
+                ));
+            form.load_current_opencode_model_fields();
+            form.field_idx = form
+                .fields()
+                .iter()
+                .position(|field| *field == ProviderAddField::OpenCodeModelId)
+                .expect("OpenCodeModelId field should exist");
+        } else {
+            panic!("expected ProviderAdd form");
+        }
+
+        let action = app.on_key(key(KeyCode::Enter), &data);
+        assert!(matches!(action, Action::None));
+        let editing = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => form.editing,
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert!(editing, "OpenCode model id should enter plain editing mode");
+        assert!(matches!(app.overlay, Overlay::None));
+    }
+
+    #[test]
+    fn provider_opencode_model_shortcuts_manage_models_inline() {
+        let mut app = App::new(Some(AppType::OpenCode));
+        app.route = Route::Providers;
+        app.focus = Focus::Content;
+
+        let data = UiData::default();
+        app.on_key(key(KeyCode::Char('a')), &data);
+        app.on_key(key(KeyCode::Enter), &data);
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.focus = super::super::form::FormFocus::Fields;
+            form.editing = false;
+            form.opencode_models = vec![
+                crate::provider::OpenCodeModelDraft {
+                    model_id: "gpt-4.1".to_string(),
+                    model_name: "GPT 4.1".to_string(),
+                    original_model_id: Some("gpt-4.1".to_string()),
+                    ..crate::provider::OpenCodeModelDraft::new("gpt-4.1".to_string())
+                },
+                crate::provider::OpenCodeModelDraft {
+                    model_id: "gpt-4.1-mini".to_string(),
+                    model_name: "GPT 4.1 Mini".to_string(),
+                    original_model_id: Some("gpt-4.1-mini".to_string()),
+                    ..crate::provider::OpenCodeModelDraft::new("gpt-4.1-mini".to_string())
+                },
+            ];
+            form.load_current_opencode_model_fields();
+            form.field_idx = form
+                .fields()
+                .iter()
+                .position(|field| *field == ProviderAddField::OpenCodeModelConfig)
+                .expect("OpenCodeModelConfig field should exist");
+        } else {
+            panic!("expected ProviderAdd form");
+        }
+
+        app.on_key(key(KeyCode::Enter), &data);
+        let current_id = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => {
+                form.opencode_model_id.value.clone()
+            }
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(current_id, "gpt-4.1-mini");
+
+        app.on_key(key(KeyCode::Char('n')), &data);
+        let (model_count, editing, current_id_after_add) = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => (
+                form.opencode_models.len(),
+                form.editing,
+                form.opencode_model_id.value.clone(),
+            ),
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(model_count, 3);
+        assert!(editing);
+        assert!(current_id_after_add.is_empty());
+
+        if let Some(super::super::form::FormState::ProviderAdd(form)) = app.form.as_mut() {
+            form.editing = false;
+        }
+        app.on_key(key(KeyCode::Delete), &data);
+        let (model_count_after_delete, current_id_after_delete) = match app.form.as_ref() {
+            Some(super::super::form::FormState::ProviderAdd(form)) => (
+                form.opencode_models.len(),
+                form.opencode_model_id.value.clone(),
+            ),
+            other => panic!("expected ProviderAdd form, got: {other:?}"),
+        };
+        assert_eq!(model_count_after_delete, 2);
+        assert_eq!(current_id_after_delete, "gpt-4.1-mini");
     }
 
     #[test]

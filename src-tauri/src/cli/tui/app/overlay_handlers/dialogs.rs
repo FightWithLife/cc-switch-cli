@@ -101,6 +101,27 @@ impl App {
                             filename: filename.clone(),
                         }
                     }
+                    ConfirmAction::OpenCodeModelDelete {
+                        provider_id,
+                        model_id,
+                    } => {
+                        let _target_provider_id = provider_id;
+                        if let Some(draft) = self.opencode_draft.as_mut() {
+                            if let Some(removed) = draft.remove_model(model_id) {
+                                let count = draft.model_count();
+                                if count == 0 {
+                                    self.provider_idx = 0;
+                                } else {
+                                    self.provider_idx = self.provider_idx.min(count - 1);
+                                }
+                                self.push_toast(
+                                    format!("Deleted model `{}`", removed.model_id),
+                                    ToastKind::Success,
+                                );
+                            }
+                        }
+                        Action::None
+                    }
                     ConfirmAction::FormSaveBeforeClose => self.handle_form_save_shortcut(data),
                     ConfirmAction::EditorDiscard => Action::EditorDiscard,
                     ConfirmAction::EditorSaveBeforeClose => {
@@ -124,6 +145,7 @@ impl App {
                 }
                 if matches!(confirm.action, ConfirmAction::FormSaveBeforeClose) {
                     self.form = None;
+                    self.opencode_draft = None;
                 }
                 self.close_overlay();
                 Action::None

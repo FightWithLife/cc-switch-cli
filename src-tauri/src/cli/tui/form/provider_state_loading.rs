@@ -224,32 +224,19 @@ fn populate_opencode_form(form: &mut ProviderAddFormState, provider: &Provider) 
         form.opencode_models = loaded_models;
     }
 
-    // 设置 flat fields（用于 ProviderForm 中的 ModelConfig 入口行显示，以及向后兼容）
+    // 设置只读摘要字段，ProviderForm 入口行和旧测试仍读取这些展示值。
     // 优先使用 currentModel，否则使用排序后的第一个 model
     let active_model_id =
         current_model.or_else(|| form.opencode_models.first().map(|m| m.model_id.clone()));
 
     if let Some(ref model_id) = active_model_id {
-        form.opencode_model_original_id = Some(model_id.clone());
-        form.opencode_model_id.set(model_id);
-        if let Some(draft) = form
+        form.opencode_model_idx = form
             .opencode_models
             .iter()
-            .find(|m| &m.model_id == model_id)
-        {
-            if !draft.model_name.is_empty() {
-                form.opencode_model_name.set(&draft.model_name);
-            } else {
-                form.opencode_model_name.set(model_id);
-            }
-            if let Some(context) = draft.input_limit {
-                form.opencode_model_context_limit.set(context.to_string());
-            }
-            if let Some(output) = draft.output_limit {
-                form.opencode_model_output_limit.set(output.to_string());
-            }
-        }
+            .position(|m| &m.model_id == model_id)
+            .unwrap_or(0);
     }
+    form.load_current_opencode_model_fields();
 }
 
 fn populate_openclaw_form(form: &mut ProviderAddFormState, provider: &Provider) {

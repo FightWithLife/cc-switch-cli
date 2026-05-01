@@ -10,12 +10,14 @@ use crate::openclaw_config::{
     OpenClawEnvConfig, OpenClawToolsConfig,
 };
 use crate::provider::Provider;
+use crate::services::provider::ProviderSaveOutcome;
 use crate::services::{McpService, PromptService, ProviderService};
 use crate::settings::{set_webdav_sync_settings, WebDavSyncSettings};
 
-use super::super::app::{EditorSubmit, Overlay, TextViewState, ToastKind};
+use super::super::app::{EditorSubmit, OpenCodeProviderDraft, Overlay, TextViewState, ToastKind};
 use super::super::data::{load_state, UiData};
-use super::super::form::FormState;
+use super::super::form::{FormMode, FormState, ProviderAddFormState};
+use super::super::route::Route;
 use super::helpers::{refresh_openclaw_workspace_data, run_external_editor_for_current_editor};
 use super::RuntimeActionContext;
 
@@ -59,8 +61,8 @@ pub(super) fn submit(
         EditorSubmit::ConfigOpenClawTools => submit_openclaw_tools(ctx, content),
         EditorSubmit::ConfigOpenClawAgents => submit_openclaw_agents(ctx, content),
         EditorSubmit::ConfigWebDavSettings => submit_webdav_settings(ctx, content),
-        EditorSubmit::OpenCodeModelFieldEdit { model_idx, field } => {
-            submit_opencode_model_field_edit(ctx, model_idx, field, content)
+        EditorSubmit::OpenCodeModelFieldEdit { model_id, field } => {
+            submit_opencode_model_field_edit(ctx, model_id, field, content)
         }
     }
 }
@@ -510,15 +512,81 @@ fn submit_provider_add(
     };
     provider.id = provider_id;
 
-    match ProviderService::add(&state, ctx.app.app_type.clone(), provider) {
-        Ok(true) => {
+    let keep_opencode_form = matches!(ctx.app.app_type, AppType::OpenCode)
+        && ctx.app.form.is_some()
+        && matches!(ctx.app.route, Route::ProviderDetail { .. });
+
+    let save_result = if keep_opencode_form {
+        ProviderService::add_allowing_live_sync_failure(
+            &state,
+            ctx.app.app_type.clone(),
+            provider.clone(),
+        )
+    } else {
+        ProviderService::add(&state, ctx.app.app_type.clone(), provider.clone())
+            .map(ProviderSaveOutcome::Saved)
+    };
+
+    match save_result {
+        Ok(ProviderSaveOutcome::Saved(true)) => {
             ctx.app.editor = None;
-            ctx.app.form = None;
+            if keep_opencode_form {
+                let saved_provider = ProviderService::list(&state, AppType::OpenCode)?
+                    .get(&provider.id)
+                    .cloned()
+                    .unwrap_or_else(|| provider.clone());
+                let mut form =
+                    ProviderAddFormState::from_provider(AppType::OpenCode, &saved_provider);
+                form.mode = FormMode::Edit {
+                    id: saved_provider.id.clone(),
+                };
+                ctx.app.opencode_draft =
+                    Some(OpenCodeProviderDraft::from_provider(&saved_provider));
+                ctx.app.form = Some(FormState::ProviderAdd(form));
+            } else {
+                ctx.app.form = None;
+                ctx.app.opencode_draft = None;
+            }
             ctx.app
                 .push_toast(texts::tui_toast_provider_add_finished(), ToastKind::Success);
             *ctx.data = UiData::load(&ctx.app.app_type)?;
         }
-        Ok(false) => {
+        Ok(ProviderSaveOutcome::DbCommittedLiveSyncFailed {
+            result: true,
+            error,
+        }) => {
+            let live_sync_error = Some(error);
+            ctx.app.editor = None;
+            if keep_opencode_form {
+                let saved_provider = ProviderService::list(&state, AppType::OpenCode)?
+                    .get(&provider.id)
+                    .cloned()
+                    .unwrap_or_else(|| provider.clone());
+                let mut form =
+                    ProviderAddFormState::from_provider(AppType::OpenCode, &saved_provider);
+                form.mode = FormMode::Edit {
+                    id: saved_provider.id.clone(),
+                };
+                ctx.app.opencode_draft =
+                    Some(OpenCodeProviderDraft::from_provider(&saved_provider));
+                ctx.app.form = Some(FormState::ProviderAdd(form));
+            } else {
+                ctx.app.form = None;
+                ctx.app.opencode_draft = None;
+            }
+            if let Some(err) = live_sync_error {
+                ctx.app.push_toast(
+                    texts::tui_toast_provider_db_committed_live_sync_failed(&err.to_string()),
+                    ToastKind::Warning,
+                );
+            } else {
+                ctx.app
+                    .push_toast(texts::tui_toast_provider_add_finished(), ToastKind::Success);
+            }
+            *ctx.data = UiData::load(&ctx.app.app_type)?;
+        }
+        Ok(ProviderSaveOutcome::Saved(false))
+        | Ok(ProviderSaveOutcome::DbCommittedLiveSyncFailed { result: false, .. }) => {
             ctx.app
                 .push_toast(texts::tui_toast_provider_add_failed(), ToastKind::Error);
         }
@@ -553,20 +621,65 @@ fn submit_provider_edit(
         return Ok(());
     }
 
-    let state = load_state()?;
-    let result = ProviderService::update(&state, ctx.app.app_type.clone(), provider);
+    let keep_opencode_form = matches!(ctx.app.app_type, AppType::OpenCode)
+        && ctx.app.form.is_some()
+        && matches!(ctx.app.route, Route::ProviderDetail { .. });
 
-    if let Err(err) = result {
-        ctx.app.push_toast(err.to_string(), ToastKind::Error);
-        return Ok(());
-    }
+    let state = load_state()?;
+    let save_result = if keep_opencode_form {
+        ProviderService::update_allowing_live_sync_failure(
+            &state,
+            ctx.app.app_type.clone(),
+            provider.clone(),
+        )
+    } else {
+        ProviderService::update(&state, ctx.app.app_type.clone(), provider.clone())
+            .map(ProviderSaveOutcome::Saved)
+    };
+
+    let live_sync_error = match save_result {
+        Ok(ProviderSaveOutcome::Saved(true)) => None,
+        Ok(ProviderSaveOutcome::DbCommittedLiveSyncFailed {
+            result: true,
+            error,
+        }) => Some(error),
+        Ok(ProviderSaveOutcome::Saved(false))
+        | Ok(ProviderSaveOutcome::DbCommittedLiveSyncFailed { result: false, .. }) => {
+            ctx.app
+                .push_toast(texts::tui_toast_provider_add_failed(), ToastKind::Error);
+            return Ok(());
+        }
+        Err(err) => {
+            ctx.app.push_toast(err.to_string(), ToastKind::Error);
+            return Ok(());
+        }
+    };
 
     ctx.app.editor = None;
-    ctx.app.form = None;
-    ctx.app.push_toast(
-        texts::tui_toast_provider_edit_finished(),
-        ToastKind::Success,
-    );
+    if keep_opencode_form {
+        let saved_provider = ProviderService::list(&state, AppType::OpenCode)?
+            .get(&id)
+            .cloned()
+            .unwrap_or_else(|| provider.clone());
+        let mut form = ProviderAddFormState::from_provider(AppType::OpenCode, &saved_provider);
+        form.mode = FormMode::Edit { id: id.clone() };
+        ctx.app.opencode_draft = Some(OpenCodeProviderDraft::from_provider(&saved_provider));
+        ctx.app.form = Some(FormState::ProviderAdd(form));
+    } else {
+        ctx.app.form = None;
+        ctx.app.opencode_draft = None;
+    }
+    if let Some(err) = live_sync_error {
+        ctx.app.push_toast(
+            texts::tui_toast_provider_db_committed_live_sync_failed(&err.to_string()),
+            ToastKind::Warning,
+        );
+    } else {
+        ctx.app.push_toast(
+            texts::tui_toast_provider_edit_finished(),
+            ToastKind::Success,
+        );
+    }
     *ctx.data = UiData::load(&ctx.app.app_type)?;
     Ok(())
 }
@@ -751,33 +864,25 @@ fn submit_webdav_settings(
 
 fn submit_opencode_model_field_edit(
     ctx: &mut RuntimeActionContext<'_>,
-    model_idx: usize,
+    model_id: String,
     field: &'static str,
     content: String,
 ) -> Result<(), AppError> {
     let trimmed = content.trim().to_string();
 
-    let Some(FormState::ProviderAdd(form)) = &mut ctx.app.form else {
+    let Some(draft) = &mut ctx.app.opencode_draft else {
         ctx.app.editor = None;
         return Ok(());
     };
 
-    if model_idx >= form.opencode_models.len() {
-        ctx.app.editor = None;
-        ctx.app.push_toast(
-            if crate::cli::i18n::is_chinese() {
-                format!("模型索引 {} 超出范围", model_idx)
-            } else {
-                format!("Model index {} out of range", model_idx)
-            },
-            ToastKind::Error,
-        );
-        return Ok(());
-    }
+    let lookup_id = model_id.as_str();
 
     match field {
         "model_name" => {
-            form.opencode_models[model_idx].model_name = trimmed;
+            if let Some(model) = draft.models_by_id.get_mut(lookup_id) {
+                model.model_name = trimmed;
+                draft.set_dirty(true);
+            }
         }
         "model_id" => {
             if trimmed.is_empty() {
@@ -791,36 +896,40 @@ fn submit_opencode_model_field_edit(
                 );
                 return Ok(());
             }
-            // 检查重复（不可变借用完成后才可变借用）
-            let duplicate = form
-                .opencode_models
-                .iter()
-                .enumerate()
-                .any(|(i, m)| i != model_idx && m.model_id == trimmed);
-            if duplicate {
+            if let Err(err) = draft.rename_model(lookup_id, trimmed.clone()) {
                 ctx.app.push_toast(
                     if crate::cli::i18n::is_chinese() {
-                        format!("模型 ID `{}` 已存在", trimmed)
+                        err.clone()
                     } else {
-                        format!("Model ID `{}` already exists", trimmed)
+                        err
                     },
                     ToastKind::Error,
                 );
                 return Ok(());
             }
-            let old_id = form.opencode_models[model_idx].model_id.clone();
-            form.opencode_models[model_idx].original_model_id = Some(old_id.clone());
-            form.opencode_models[model_idx].model_id = trimmed.clone();
-            // 更新 current model
-            if form.opencode_model_id.value.trim() == old_id {
-                form.opencode_model_id.set(&trimmed);
-            }
         }
         "input_limit" => {
             if trimmed.is_empty() {
-                form.opencode_models[model_idx].input_limit = None;
+                if let Some(model) = draft.models_by_id.get_mut(lookup_id) {
+                    model.input_limit = None;
+                    draft.set_dirty(true);
+                }
             } else if let Ok(val) = trimmed.parse::<u64>() {
-                form.opencode_models[model_idx].input_limit = Some(val);
+                if val == 0 || val > u32::MAX as u64 {
+                    ctx.app.push_toast(
+                        if crate::cli::i18n::is_chinese() {
+                            "必须是正整数".to_string()
+                        } else {
+                            "Must be positive integer".to_string()
+                        },
+                        ToastKind::Error,
+                    );
+                    return Ok(());
+                }
+                if let Some(model) = draft.models_by_id.get_mut(lookup_id) {
+                    model.input_limit = Some(val);
+                    draft.set_dirty(true);
+                }
             } else {
                 ctx.app.push_toast(
                     if crate::cli::i18n::is_chinese() {
@@ -835,9 +944,26 @@ fn submit_opencode_model_field_edit(
         }
         "output_limit" => {
             if trimmed.is_empty() {
-                form.opencode_models[model_idx].output_limit = None;
+                if let Some(model) = draft.models_by_id.get_mut(lookup_id) {
+                    model.output_limit = None;
+                    draft.set_dirty(true);
+                }
             } else if let Ok(val) = trimmed.parse::<u64>() {
-                form.opencode_models[model_idx].output_limit = Some(val);
+                if val == 0 || val > u32::MAX as u64 {
+                    ctx.app.push_toast(
+                        if crate::cli::i18n::is_chinese() {
+                            "必须是正整数".to_string()
+                        } else {
+                            "Must be positive integer".to_string()
+                        },
+                        ToastKind::Error,
+                    );
+                    return Ok(());
+                }
+                if let Some(model) = draft.models_by_id.get_mut(lookup_id) {
+                    model.output_limit = Some(val);
+                    draft.set_dirty(true);
+                }
             } else {
                 ctx.app.push_toast(
                     if crate::cli::i18n::is_chinese() {

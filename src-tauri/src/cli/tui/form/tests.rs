@@ -1611,16 +1611,22 @@ fn provider_add_form_opencode_includes_dedicated_fields() {
         fields.len() > 6,
         "OpenCode should expose dedicated provider/model fields instead of only common metadata"
     );
+    assert!(fields.contains(&ProviderAddField::OpenCodeModelId));
+    assert!(fields.contains(&ProviderAddField::OpenCodeModelName));
+    assert!(fields.contains(&ProviderAddField::OpenCodeModelContextLimit));
+    assert!(fields.contains(&ProviderAddField::OpenCodeModelOutputLimit));
 }
 
 #[test]
-fn provider_add_form_opencode_builds_settings_from_dedicated_fields() {
+fn provider_add_form_opencode_builds_model_from_inline_fields() {
     let mut form = ProviderAddFormState::new(AppType::OpenCode);
     form.id.set("oc1");
     form.name.set("OpenCode Provider");
     form.opencode_npm_package.set("@ai-sdk/openai-compatible");
     form.opencode_api_key.set("sk-oc");
     form.opencode_base_url.set("https://api.example.com/v1");
+    form.opencode_models
+        .push(crate::provider::OpenCodeModelDraft::new(String::new()));
     form.opencode_model_id.set("gpt-4.1-mini");
     form.opencode_model_name.set("GPT 4.1 Mini");
     form.opencode_model_context_limit.set("128000");
@@ -1649,6 +1655,26 @@ fn provider_add_form_opencode_builds_settings_from_dedicated_fields() {
         provider["settingsConfig"]["models"]["gpt-4.1-mini"]["limit"]["output"],
         8192
     );
+    assert!(
+        provider["settingsConfig"]["currentModel"] == "gpt-4.1-mini",
+        "OpenCode currentModel should follow the active inline model"
+    );
+}
+
+#[test]
+fn provider_add_form_opencode_model_name_defaults_to_uppercase_model_id() {
+    let mut form = ProviderAddFormState::new(AppType::OpenCode);
+    form.opencode_models
+        .push(crate::provider::OpenCodeModelDraft::new(String::new()));
+    form.opencode_model_id.set("gpt-4.1-mini");
+
+    let provider = form.to_provider_json_value();
+
+    assert_eq!(
+        provider["settingsConfig"]["models"]["gpt-4.1-mini"]["name"],
+        "GPT-4.1-MINI"
+    );
+    assert_eq!(form.opencode_model_display_name(), "GPT-4.1-MINI");
 }
 
 #[test]

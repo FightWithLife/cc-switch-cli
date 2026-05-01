@@ -598,6 +598,14 @@ pub fn tui_toast_provider_edit_finished() -> &'static str {
     }
 }
 
+pub fn tui_toast_provider_db_committed_live_sync_failed(reason: &str) -> String {
+    if is_chinese() {
+        format!("DB 已提交，但 live JSON 同步失败: {reason}")
+    } else {
+        format!("DB committed, JSON sync failed: {reason}")
+    }
+}
+
 pub fn tui_toast_mcp_updated() -> &'static str {
     if is_chinese() {
         "MCP 已更新。"

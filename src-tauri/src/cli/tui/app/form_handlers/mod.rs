@@ -40,7 +40,11 @@ impl App {
         let has_unsaved_changes = self
             .form
             .as_ref()
-            .is_some_and(FormState::has_unsaved_changes);
+            .is_some_and(FormState::has_unsaved_changes)
+            || self
+                .opencode_draft
+                .as_ref()
+                .is_some_and(|draft| draft.is_dirty());
         if has_unsaved_changes {
             self.overlay = Overlay::Confirm(ConfirmOverlay {
                 title: texts::tui_editor_save_before_close_title().to_string(),
@@ -51,6 +55,7 @@ impl App {
         }
 
         self.form = None;
+        self.opencode_draft = None;
         Action::None
     }
 
